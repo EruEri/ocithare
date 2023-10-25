@@ -1,8 +1,8 @@
 # ocithare
 
 
-ocithare is the rewrite of [cithare](https://github.com/EruEri/cithare), which is written in swift, in OCaml
-ocithare is a command line password manager
+- ocithare is the rewrite of [cithare](https://github.com/EruEri/cithare), which is written in swift, in OCaml
+- ocithare is a command line password manager
 
 ## How to build
 
