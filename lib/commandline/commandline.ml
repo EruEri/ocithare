@@ -39,6 +39,12 @@ let info = Cmd.info ~doc ~version ~man name
 
 let subcommands =
   Cmd.group ~default info
-    [ Cinit.command; Cadd.command; Cdelete.command; Cshow.command ]
+    [
+      Cinit.command;
+      Cadd.command;
+      Cdelete.command;
+      Cshow.command;
+      CgenPassword.command;
+    ]
 
 let eval () = Cmd.eval subcommands
