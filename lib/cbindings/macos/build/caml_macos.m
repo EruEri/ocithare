@@ -29,6 +29,7 @@ CAMLprim value caml_set_pastboard_content(value string) {
     const char* content = String_val(string);
     NSString* s = [NSString stringWithUTF8String:content];
     NSPasteboard* pasterboard = [NSPasteboard generalPasteboard];
+    [pasterboard clearContents];
     BOOL b = [pasterboard setString:s forType:NSPasteboardTypeString];
 
     // It can be simplifity but since it 2 differente language

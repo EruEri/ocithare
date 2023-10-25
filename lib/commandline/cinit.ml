@@ -42,5 +42,8 @@ let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
-let run _t = ()
+let run t =
+  let { force = _; import = _ } = t in
+  ()
+
 let command = cmd run

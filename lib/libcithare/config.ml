@@ -22,3 +22,12 @@ let version =
       "[n/a]"
 
 let cithare_name = "cithare"
+let password_file = ".citharerc"
+let ( / ) = Filename.concat
+let xdg = Xdg.create ~env:Sys.getenv_opt ()
+let xdg_data = Xdg.data_dir xdg
+let xdg_config = Xdg.config_dir xdg
+let xdg_state = Xdg.state_dir xdg
+let cithare_share_dir = xdg_data / cithare_name
+let cithare_state_dir = xdg_data / cithare_name
+let cithare_password_file = cithare_share_dir / password_file
