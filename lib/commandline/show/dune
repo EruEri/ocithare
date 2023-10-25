@@ -17,12 +17,11 @@
 
 (library
  (name cshow)
- (libraries 
+ (libraries
   cmdliner
   libcithare
-   (select cshow.ml from 
-    (macos -> cshow.macos.ml)
-    (-> cshow.others.ml) 
-   )
- )
-)
+  (select
+   cshow.ml
+   from
+   (macos -> cshow.macos.ml)
+   (-> cshow.others.ml))))

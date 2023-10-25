@@ -14,9 +14,11 @@
 (* If not, see <http://www.gnu.org/licenses/>.                                                *)
 (*                                                                                            *)
 (**********************************************************************************************)
-let version = 
+let version =
   match Build_info.V1.version () with
-  | Some s -> Build_info.V1.Version.to_string s
-  | None -> "[n/a]"
+  | Some s ->
+      Build_info.V1.Version.to_string s
+  | None ->
+      "[n/a]"
 
 let cithare_name = "cithare"

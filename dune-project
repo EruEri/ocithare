@@ -19,10 +19,9 @@
 
 (package
  (name ocithare)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune)
+ (synopsis "A commandline password manager")
+ (depends ocaml dune cryptokit yojson cmdliner xdg)
  (tags
-  (topics "to describe" your project)))
+  (password-manager)))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project

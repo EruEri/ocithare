@@ -19,32 +19,40 @@ open Cmdliner
 
 let term_website =
   Arg.(
-    value & opt (some string) None & info ["w"; "website"] ~docv:"WEBSITE" ~doc:"Specify the site"
+    value
+    & opt (some string) None
+    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Specify the site"
   )
 
-let term_regex = 
+let term_regex =
   Arg.(
-    value & flag & info ["r"; "regex"] ~doc:"Find the website by matching its name"
+    value & flag
+    & info [ "r"; "regex" ] ~doc:"Find the website by matching its name"
   )
 
-let term_paste = 
+let term_paste =
   Arg.(
-    value & flag & info ["p"; "paste"] ~doc:"Write the password into the pasteboard"
+    value & flag
+    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
   )
 
-let term_output = 
+let term_output =
   Arg.(
-    value & opt (some string) None & info ["o"; "output"] ~docv:"OUTFILE" ~doc:"Export passwords as json into $(docv)"
+    value
+    & opt (some string) None
+    & info [ "o"; "output" ] ~docv:"OUTFILE"
+        ~doc:"Export passwords as json into $(docv)"
   )
 
-let term_display_time = 
+let term_display_time =
   Arg.(
-    value & opt (some int) None & info ["d"; "display-time"] ~docv:"DURATION" ~doc:"Show password to stdout for $(docv)"
+    value
+    & opt (some int) None
+    & info [ "d"; "display-time" ] ~docv:"DURATION"
+        ~doc:"Show password to stdout for $(docv)"
   )
 
-let term_show_password = 
-  Arg.(
-    value & flag & info ["show-password"] ~doc:"Show plain passwords"
-  )
+let term_show_password =
+  Arg.(value & flag & info [ "show-password" ] ~doc:"Show plain passwords")
 
 let doc = "Show password"

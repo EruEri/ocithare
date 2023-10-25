@@ -19,39 +19,28 @@ open Cmdliner
 
 let name = "init"
 
-type t = {
-  force: bool;
-  import: string option
-}
+type t = { force : bool; import : string option }
 
-let term_force = 
+let term_force =
+  Arg.(value & flag & info [ "f"; "force" ] ~doc:"Force the initialisation")
+
+let term_import =
   Arg.(
-    value & flag & info ["f"; "force"] ~doc:"Force the initialisation"
+    value
+    & opt (some string) None
+    & info [ "i"; "import" ] ~doc:"Initialize with a formatted password file"
   )
 
-let term_import = 
-  Arg.(
-    value & opt (some string) None  & info ["i"; "import"] ~doc:"Initialize with a formatted password file"
-  )
-
-let term_cmd run = 
-  let combine force import = 
-    run @@ {force; import}
-  in
-  Term.(
-    const combine $ term_force $ term_import
-  )
+let term_cmd run =
+  let combine force import = run @@ { force; import } in
+  Term.(const combine $ term_force $ term_import)
 
 let doc = "Initialize $(mname)"
 let man = []
 
-
-let cmd run = 
-  let 
-    info = Cmd.info ~doc ~man name 
-  in
+let cmd run =
+  let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
 let run _t = ()
-
 let command = cmd run

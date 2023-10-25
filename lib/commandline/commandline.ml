@@ -17,43 +17,27 @@
 
 open Cmdliner
 
+type t = { change_master_password : bool } [@@unboxed]
 
-type t = {
-  change_master_password: bool
-}[@@unboxed]
-
-
-let term_change_master_password = 
+let term_change_master_password =
   Arg.(
-    value & flag & info ["change-master-password"] ~doc:"Change the master password"
+    value & flag
+    & info [ "change-master-password" ] ~doc:"Change the master password"
   )
 
-let term_cmd run = 
-  let combine change_master_password = 
-    run {change_master_password}
-  in
-  Term.(
-    const combine $ term_change_master_password
-  )
+let term_cmd run =
+  let combine change_master_password = run { change_master_password } in
+  Term.(const combine $ term_change_master_password)
 
-let run _t = 
-  ()
-
-let default = term_cmd run 
-
+let run _t = ()
+let default = term_cmd run
 let name = Libcithare.Config.cithare_name
 let version = Libcithare.Config.version
-
-
 let doc = "A command-line password manager"
 let man = []
+let info = Cmd.info ~doc ~version ~man name
 
-let info  = 
-  Cmd.info ~doc ~version ~man name
+let subcommands =
+  Cmd.group ~default info [ Cadd.command; Cinit.command; Cshow.command ]
 
-let subcommands = 
-  Cmd.group ~default info [Cadd.command; Cinit.command; Cshow.command]
-
-
-let eval () = 
-  Cmd.eval subcommands
+let eval () = Cmd.eval subcommands

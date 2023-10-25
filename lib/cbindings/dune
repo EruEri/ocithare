@@ -1,3 +1,9 @@
+(include_subdirs unqualified)
+
 (library
  (name cbindings)
- (libraries ))
+ (libraries)
+ (foreign_stubs
+  (language c)
+  (names caml_winsize caml_termove)
+  (flags (-fPIC) (-O2))))

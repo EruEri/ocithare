@@ -20,45 +20,34 @@ open Cmdliner
 let name = "show"
 
 type t = {
-  website: string option;
-  regex: bool;
-  output: string option;
-  display_time: int option;
-  show_passord: bool;
+  website : string option;
+  regex : bool;
+  output : string option;
+  display_time : int option;
+  show_passord : bool;
 }
 
 let term_website = CshowCommon.term_website
-
 let term_regex = CshowCommon.term_regex
-
-let term_output = CshowCommon.term_output 
+let term_output = CshowCommon.term_output
 let term_display_time = CshowCommon.term_display_time
-
 let term_show_password = CshowCommon.term_show_password
 
-let term_cmd run = 
-  let combine website regex output display_time show_passord = 
-    run {website; regex; output; display_time; show_passord}
+let term_cmd run =
+  let combine website regex output display_time show_passord =
+    run { website; regex; output; display_time; show_passord }
   in
   Term.(
-    const combine
-    $ term_website $ term_regex $ term_output $ term_display_time $ term_show_password
+    const combine $ term_website $ term_regex $ term_output $ term_display_time
+    $ term_show_password
   )
 
 let doc = CshowCommon.doc
-
-let man = [
-  `S Manpage.s_description;
-  `P "Export or display passwords"
-]
+let man = [ `S Manpage.s_description; `P "Export or display passwords" ]
 
 let cmd run =
-  let info = Cmd.info ~doc ~man name 
-  in
-  Cmd.v info (term_cmd run) 
+  let info = Cmd.info ~doc ~man name in
+  Cmd.v info (term_cmd run)
 
-let run _t = 
-  ()
-
-
+let run _t = ()
 let command = cmd run

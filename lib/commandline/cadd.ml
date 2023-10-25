@@ -19,66 +19,64 @@ open Cmdliner
 
 let name = "add"
 
-
 type t = {
-  replace: bool;
-  website: string;
-  username: string option;
-  mail: string option;
-  autogen: int option;
+  replace : bool;
+  website : string;
+  username : string option;
+  mail : string option;
+  autogen : int option;
 }
 
-
-
-let term_replace = 
+let term_replace =
   Arg.(
-    value & flag & info ["r"; "replace"] ~doc:"Use in order to replace a password"
+    value & flag
+    & info [ "r"; "replace" ] ~doc:"Use in order to replace a password"
   )
 
-let term_website = 
+let term_website =
   Arg.(
-    required & opt (some string) None & info ["w"; "website"] ~doc:"" ~docv:"WEBSITE"
+    required
+    & opt (some string) None
+    & info [ "w"; "website" ] ~doc:"" ~docv:"WEBSITE"
   )
 
-let term_username = 
+let term_username =
   Arg.(
-    value & opt ~vopt:None (some string) None & info ["u"; "username"] ~doc:"" ~docv:"USERNAME"
+    value
+    & opt ~vopt:None (some string) None
+    & info [ "u"; "username" ] ~doc:"" ~docv:"USERNAME"
   )
 
-let term_mail = 
+let term_mail =
   Arg.(
-    value & opt (some string) None & info ["m"; "mail"] ~doc:"" ~docv:"MAIL"
+    value & opt (some string) None & info [ "m"; "mail" ] ~doc:"" ~docv:"MAIL"
   )
 
-let term_autogen = 
+let term_autogen =
   Arg.(
-    value & opt (some int) None & info ["g"; "autogen"] ~doc:"Generate an automatic password with a given length" ~docv:"LENGTH"
+    value
+    & opt (some int) None
+    & info [ "g"; "autogen" ]
+        ~doc:"Generate an automatic password with a given length" ~docv:"LENGTH"
   )
 
-let term_cmd run = 
-  let combine replace website username mail autogen = 
-    run @@ {replace; website; username; mail; autogen}
+let term_cmd run =
+  let combine replace website username mail autogen =
+    run @@ { replace; website; username; mail; autogen }
   in
   Term.(
-    const combine 
-      $ term_replace $ term_website $ term_username $ term_mail $ term_autogen
-  ) 
-
+    const combine $ term_replace $ term_website $ term_username $ term_mail
+    $ term_autogen
+  )
 
 let doc = "Add passwords to $(mname)"
+let man = [ (* `S Manpage.s_description; *) ]
 
-let man = [
-  (* `S Manpage.s_description; *)
-]
-
-
-let cmd run = 
-  let 
-    info = Cmd.info ~doc ~man name 
-  in 
+let cmd run =
+  let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
-let run _t = 
+let run _t =
   (* let {replace; website; username; mail; autogen} = t in *)
   ()
 

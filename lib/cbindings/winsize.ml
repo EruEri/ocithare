@@ -15,4 +15,6 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-external set_pastboard_content : string -> bool = "caml_set_pastboard_content"
+type t = { ws_row : int; ws_col : int; ws_xpixel : int; ws_ypixel : int }
+
+external get : unit -> t = "caml_winsize"
