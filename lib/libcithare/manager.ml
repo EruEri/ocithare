@@ -37,6 +37,10 @@ let ask_password ?(prompt = Prompt.master_password) () =
   | None ->
       raise @@ Error.getpass_error
 
+let ask_password_encrypted ?(prompt = Prompt.master_password) () =
+  let s = ask_password ~prompt () in
+  Crypto.aes_string_encrypt s ()
+
 let of_json_file file =
   let json = Yojson.Safe.from_file file in
   match of_yojson json with
@@ -46,11 +50,19 @@ let of_json_file file =
       raise @@ Error.import_file_wrong_formatted e
 
 (**
-    [encrypt password manager] encrypt [manager] with [password] and store bytes [Config.cithare_password_file]
+    [encrypt ?encrypt_key password manager] encrypt [manager] with [password] and store bytes [Config.cithare_password_file]
+    if [encrypt_key], [password] is encrypted with [aes256]
 *)
-let encrypt password manager =
+let encrypt ?(encrypt_key = false) password manager =
+  let key =
+    match encrypt_key with
+    | true ->
+        Crypto.aes_string_encrypt password ()
+    | false ->
+        password
+  in
   let _ =
-    Crypto.encrypt ~where:Config.cithare_password_file ~key:password
+    Crypto.encrypt ~where:Config.cithare_password_file ~key
       ~iv:Crypto.default_iv (to_data manager)
   in
   ()

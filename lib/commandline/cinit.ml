@@ -65,8 +65,13 @@ let run t =
     | Error s ->
         failwith s
   in
-  (* let oc = Out_channel.open_bin Libcithare.Config.cithare_password_file in
-     let () = close_out oc in *)
+  let () =
+    match force with
+    | true when citharecf_exist ->
+        Sys.remove Libcithare.Config.cithare_password_file
+    | true | false ->
+        ()
+  in
   let manager =
     match import with
     | Some file ->
@@ -89,7 +94,7 @@ let run t =
     | false ->
         raise @@ Libcithare.Error.unmatched_password
   in
-  let () = Libcithare.Manager.encrypt pass manager in
+  let () = Libcithare.Manager.encrypt ~encrypt_key:true pass manager in
   let extension =
     match Option.is_some import with true -> "with passwords" | false -> ""
   in
