@@ -15,15 +15,4 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type cithare_error =
-  | CithareAlreadyConfigured
-  | ImportFileWrongFormatted of string
-  | GetPasswordError
-  | UnmatchedPassword
-
-exception CithareError of cithare_error
-
-let cithare_already_configured = CithareError CithareAlreadyConfigured
-let import_file_wrong_formatted e = CithareError (ImportFileWrongFormatted e)
-let getpass_error = CithareError GetPasswordError
-let unmatched_password = CithareError UnmatchedPassword
+external getpass : string -> string option = "caml_getpass"

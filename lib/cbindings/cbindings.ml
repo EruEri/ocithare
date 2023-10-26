@@ -17,3 +17,4 @@
 
 module Termove = Termove
 module Winsize = Winsize
+module Libc = Libc

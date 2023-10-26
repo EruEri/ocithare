@@ -17,6 +17,6 @@
 
 (library
  (name libcithare)
- (libraries yojson cryptokit xdg dune-build-info)
+ (libraries util cbindings yojson cryptokit xdg dune-build-info)
  (preprocess
   (pps ppx_deriving_yojson)))

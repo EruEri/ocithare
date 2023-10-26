@@ -15,15 +15,5 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type cithare_error =
-  | CithareAlreadyConfigured
-  | ImportFileWrongFormatted of string
-  | GetPasswordError
-  | UnmatchedPassword
-
-exception CithareError of cithare_error
-
-let cithare_already_configured = CithareError CithareAlreadyConfigured
-let import_file_wrong_formatted e = CithareError (ImportFileWrongFormatted e)
-let getpass_error = CithareError GetPasswordError
-let unmatched_password = CithareError UnmatchedPassword
+let read_file ch = really_input_string ch (in_channel_length ch)
+let content_filename string = In_channel.with_open_bin string read_file

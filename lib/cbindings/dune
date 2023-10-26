@@ -5,5 +5,5 @@
  (libraries)
  (foreign_stubs
   (language c)
-  (names caml_winsize caml_termove)
+  (names caml_winsize caml_termove caml_libc)
   (flags (-fPIC) (-O2))))

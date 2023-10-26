@@ -27,8 +27,9 @@ let term_force =
 let term_import =
   Arg.(
     value
-    & opt (some string) None
-    & info [ "i"; "import" ] ~doc:"Initialize with a formatted password file"
+    & opt (some file) None
+    & info [ "i"; "import" ] ~docv:"<FILE>"
+        ~doc:"Initialize with a formatted password file"
   )
 
 let term_cmd run =
@@ -43,7 +44,7 @@ let cmd run =
   Cmd.v info @@ term_cmd run
 
 let run t =
-  let { force; import = _ } = t in
+  let { force; import } = t in
   let citharecf_exist =
     Util.FileSys.file_exists Libcithare.Config.cithare_password_file
   in
@@ -63,6 +64,38 @@ let run t =
         ()
     | Error s ->
         failwith s
+  in
+  (* let oc = Out_channel.open_bin Libcithare.Config.cithare_password_file in
+     let () = close_out oc in *)
+  let manager =
+    match import with
+    | Some file ->
+        Libcithare.Manager.of_json_file file
+    | None ->
+        Libcithare.Manager.empty
+  in
+  let pass1 =
+    Libcithare.Manager.ask_password
+      ~prompt:Libcithare.Manager.Prompt.new_password ()
+  in
+  let pass2 =
+    Libcithare.Manager.ask_password
+      ~prompt:Libcithare.Manager.Prompt.confirm_new_password ()
+  in
+  let pass =
+    match pass1 = pass2 with
+    | true ->
+        pass1
+    | false ->
+        raise @@ Libcithare.Error.unmatched_password
+  in
+  let () = Libcithare.Manager.encrypt pass manager in
+  let extension =
+    match Option.is_some import with true -> "with passwords" | false -> ""
+  in
+  let () =
+    Printf.printf "%s initiliazed %s\n%!" Libcithare.Config.cithare_name
+      extension
   in
   ()
 

@@ -17,3 +17,4 @@
 
 module Config = Config
 module Error = Error
+module Manager = Manager

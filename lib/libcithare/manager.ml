@@ -15,10 +15,42 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type password = {
-  website : string;
-  username : string option;
-  mail : string option;
-  password : string;
-}
-[@@deriving yojson]
+module Prompt = struct
+  let master_password = "Enter the master password : "
+  let new_password = "Enter the new master password : "
+  let confirm_new_password = "Confirm the new master password : "
+end
+
+type t = { passwords : Password.t list } [@@deriving yojson]
+
+let empty = { passwords = [] }
+let to_data manager = Yojson.Safe.to_string @@ to_yojson manager
+
+(**
+    [ask_password ?(prompt = prompt) ()] gets the password from the user using [c getpass]
+    @raise Error.CithareError if c pointer is null
+*)
+let ask_password ?(prompt = Prompt.master_password) () =
+  match Cbindings.Libc.getpass prompt with
+  | Some s ->
+      s
+  | None ->
+      raise @@ Error.getpass_error
+
+let of_json_file file =
+  let json = Yojson.Safe.from_file file in
+  match of_yojson json with
+  | Ok e ->
+      e
+  | Error e ->
+      raise @@ Error.import_file_wrong_formatted e
+
+(**
+    [encrypt password manager] encrypt [manager] with [password] and store bytes [Config.cithare_password_file]
+*)
+let encrypt password manager =
+  let _ =
+    Crypto.encrypt ~where:Config.cithare_password_file ~key:password
+      ~iv:Crypto.default_iv (to_data manager)
+  in
+  ()
