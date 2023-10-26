@@ -21,3 +21,4 @@ type password = {
   mail : string option;
   password : string;
 }
+[@@deriving yojson]

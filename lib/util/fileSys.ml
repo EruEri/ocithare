@@ -15,55 +15,48 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-open Cmdliner
+(**
+    [file_exists path] checks if the file at [path] exists and is a file and not a directory
+*)
+let file_exists path =
+  match Sys.file_exists path with
+  | false ->
+      false
+  | true ->
+      not @@ Sys.is_directory path
 
-let name = "init"
+(**
+    [dir_exists path] checks if the file at [path] exists and is a directory
+*)
+let dir_exists path =
+  match Sys.file_exists path with
+  | false ->
+      false
+  | true ->
+      Sys.is_directory path
 
-type t = { force : bool; import : string option }
-
-let term_force =
-  Arg.(value & flag & info [ "f"; "force" ] ~doc:"Force the initialisation")
-
-let term_import =
-  Arg.(
-    value
-    & opt (some string) None
-    & info [ "i"; "import" ] ~doc:"Initialize with a formatted password file"
-  )
-
-let term_cmd run =
-  let combine force import = run @@ { force; import } in
-  Term.(const combine $ term_force $ term_import)
-
-let doc = "Initialize $(mname)"
-let man = []
-
-let cmd run =
-  let info = Cmd.info ~doc ~man name in
-  Cmd.v info @@ term_cmd run
-
-let run t =
-  let { force; import = _ } = t in
-  let citharecf_exist =
-    Util.FileSys.file_exists Libcithare.Config.cithare_password_file
-  in
-  let () =
-    match force with
-    | false when citharecf_exist ->
-        raise @@ Libcithare.Error.cithare_already_configured
-    | true | false ->
-        ()
-  in
-  let () =
-    match
-      Util.FileSys.mkdirp Libcithare.Config.xdg_data
-        [ Libcithare.Config.cithare_name ]
-    with
-    | Ok () ->
-        ()
-    | Error s ->
-        failwith s
-  in
-  ()
-
-let command = cmd run
+(**
+    [mkdirp root componenent] creates directories which start at [root] and recursively [componenent]
+*)
+let rec mkdirp root componenent =
+  let ( let* ) = Result.bind in
+  let ok = Result.ok in
+  let err = Result.error in
+  match componenent with
+  | [] ->
+      ok ()
+  | t :: q ->
+      let path = Filename.concat root t in
+      let* () =
+        match dir_exists path with
+        | true ->
+            ok ()
+        | false -> (
+            match Sys.mkdir path 0o755 with
+            | () ->
+                ok ()
+            | exception _ ->
+                err path
+          )
+      in
+      mkdirp path q

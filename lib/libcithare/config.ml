@@ -30,4 +30,8 @@ let xdg_config = Xdg.config_dir xdg
 let xdg_state = Xdg.state_dir xdg
 let cithare_share_dir = xdg_data / cithare_name
 let cithare_state_dir = xdg_data / cithare_name
+
+(**
+   [$XDG_DATA_HOME/share/cithare/.citharerc]
+*)
 let cithare_password_file = cithare_share_dir / password_file

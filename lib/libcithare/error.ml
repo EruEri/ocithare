@@ -14,3 +14,9 @@
 (* If not, see <http://www.gnu.org/licenses/>.                                                *)
 (*                                                                                            *)
 (**********************************************************************************************)
+
+type cithare_error = CithareAlreadyConfigured
+
+exception CithareError of cithare_error
+
+let cithare_already_configured = CithareError CithareAlreadyConfigured

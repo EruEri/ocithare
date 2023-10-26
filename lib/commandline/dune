@@ -17,4 +17,4 @@
 
 (library
  (name commandline)
- (libraries cmdliner libcithare cshow))
+ (libraries util cmdliner libcithare cshow))
