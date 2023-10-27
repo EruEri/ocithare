@@ -125,3 +125,25 @@ let replace_or_add ~replace password manager =
         (CsAdded, manager << password)
   in
   manager
+
+let length manager = List.length manager.passwords
+
+(**
+    [filter website manager] removes passwords in [manager] with the website [website]
+    if no password are removed in [manager], [manager] is physical equal to [manager]
+*)
+let filter website manager =
+  let base = length manager in
+  let new_manager =
+    {
+      passwords =
+        List.filter
+          (fun password -> password.Password.website <> website)
+          manager.passwords;
+    }
+  in
+  let new_length = length new_manager in
+  if base = new_length then
+    (0, manager)
+  else
+    (base - new_length, new_manager)

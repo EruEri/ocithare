@@ -24,7 +24,13 @@ type t = { all : bool; website : string option }
 let term_all =
   Arg.(value & flag & info [ "a"; "all" ] ~doc:"Delete all passwords")
 
-let term_website = Arg.(value & opt (some string) None & info [ "w"; "website" ])
+let term_website =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "w"; "website" ] ~docv:"WEBSITE"
+        ~doc:"Delete passwords matching $(docv)"
+  )
 
 let term_cmd run =
   let combine all website = run { all; website } in
@@ -37,5 +43,67 @@ let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info (term_cmd run)
 
-let run _t = ()
+let validate t =
+  let { all; website } = t in
+  match website with
+  | None when not all ->
+      raise
+      @@ Libcithare.Error.missing_expecting_when [| "website" |] [| "all" |]
+  | _ ->
+      ()
+
+let run t =
+  let { all; website } = t in
+  let () = validate t in
+  let master_password = Libcithare.Input.ask_password_encrypted () in
+  let manager = Libcithare.Manager.decrypt master_password in
+  let base_len = Libcithare.Manager.length manager in
+  let diff =
+    match all with
+    | true ->
+        let module P = Libcithare.Input.Prompt in
+        let delete =
+          Libcithare.Input.validate_input ~default_message:P.delete_password
+            ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
+        in
+        let () =
+          match delete with
+          | false ->
+              raise @@ Libcithare.Error.delete_password_cancel
+          | true ->
+              ()
+        in
+        let manager = Libcithare.Manager.empty in
+        let () = Libcithare.Manager.encrypt master_password manager in
+        base_len
+    | false ->
+        let change, m =
+          website
+          |> Option.map (fun website ->
+                 Libcithare.Manager.filter website manager
+             )
+          |> Option.value ~default:(0, manager)
+        in
+        (* Can use physical equal since filter returns physical manager if no diff*)
+        let () =
+          match m == manager with
+          | true ->
+              ()
+          | false ->
+              let () = Libcithare.Manager.encrypt master_password m in
+              ()
+        in
+        change
+  in
+  let () =
+    match diff with
+    | 0 when Option.is_some website ->
+        print_endline "No website matched"
+    | 0 ->
+        print_endline "No password deleted"
+    | n ->
+        Printf.printf "Passwords deleted = %u\n" n
+  in
+  ()
+
 let command = cmd run

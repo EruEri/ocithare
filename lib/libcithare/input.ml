@@ -25,6 +25,7 @@ module Prompt = struct
   let wrong_choice = "Wrong Input!\nSelect between [y/n]"
   let empty_choice = "No Input!\nPlease select a reponse"
   let try_again = "Do you want to try again? [y/n]"
+  let delete_password = "Do you want to delete all your password? [y/N]"
 end
 
 (**

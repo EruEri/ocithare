@@ -22,9 +22,11 @@ type cithare_error =
   | UnmatchedPassword
   | ImportFileWrongFormatted of string
   | OptionSimultNone of string array
+  | MissingExpectedWhen of (string array * string array)
   | NegativeGivenLength
   | PasswordFileWrongFormatted
   | PasswordNotSatistying
+  | DeleteActionAbort
 
 exception CithareError of cithare_error
 
@@ -37,3 +39,7 @@ let option_simult_none a = CithareError (OptionSimultNone a)
 let negative_given_length = CithareError NegativeGivenLength
 let password_file_wrong_formatted = CithareError PasswordFileWrongFormatted
 let password_not_satisfaying = CithareError PasswordNotSatistying
+let delete_password_cancel = CithareError DeleteActionAbort
+
+let missing_expecting_when missing when_set =
+  CithareError (MissingExpectedWhen (missing, when_set))

@@ -17,8 +17,8 @@
 
 type t = {
   website : string;
-  username : string option;
-  mail : string option;
+  username : (string option[@default None]);
+  mail : (string option[@default None]);
   password : string;
 }
 [@@deriving yojson]
