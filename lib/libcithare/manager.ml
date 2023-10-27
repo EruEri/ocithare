@@ -15,34 +15,11 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module Prompt = struct
-  let master_password = "Enter the master password : "
-  let master_new_password = "Enter the new master password : "
-  let master_confirm_new_password = "Confirm the new master password : "
-  let new_password = "Enter a password :"
-  let confirm_password = "Confirm password : "
-end
-
 type t = { passwords : Password.t list } [@@deriving yojson]
 type change_status = CsAdded | CsChanged
 
 let empty = { passwords = [] }
 let to_data manager = Yojson.Safe.to_string @@ to_yojson manager
-
-(**
-    [ask_password ?(prompt = prompt) ()] gets the password from the user using [c getpass]
-    @raise Error.CithareError if c pointer is null
-*)
-let ask_password ?(prompt = Prompt.master_password) () =
-  match Cbindings.Libc.getpass prompt with
-  | Some s ->
-      s
-  | None ->
-      raise @@ Error.getpass_error
-
-let ask_password_encrypted ?(prompt = Prompt.master_password) () =
-  let s = ask_password ~prompt () in
-  Crypto.aes_string_encrypt s ()
 
 let of_json_file file =
   let json = Yojson.Safe.from_file file in

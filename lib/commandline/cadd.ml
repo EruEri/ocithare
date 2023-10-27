@@ -56,7 +56,7 @@ let term_autogen =
   Arg.(
     value
     & opt (some int) None
-    & info [ "g"; "autogen" ]
+    & info [ "a"; "autogen" ]
         ~doc:"Generate an automatic password with a given length" ~docv:"LENGTH"
   )
 
@@ -80,15 +80,16 @@ let getpassword autogen =
   match autogen with
   | Some t ->
       let () = assert (t > 0) in
-      failwith "TODO: Cadd generate password"
+      CgenPassword.is_password_satifying ~number:true ~uppercase:true
+        ~lowercase:true ~symbole:false t
   | None ->
       let first =
-        Libcithare.Manager.ask_password
-          ~prompt:Libcithare.Manager.Prompt.new_password ()
+        Libcithare.Input.ask_password
+          ~prompt:Libcithare.Input.Prompt.new_password ()
       in
       let confirm =
-        Libcithare.Manager.ask_password
-          ~prompt:Libcithare.Manager.Prompt.confirm_password ()
+        Libcithare.Input.ask_password
+          ~prompt:Libcithare.Input.Prompt.confirm_password ()
       in
       let () =
         match first = confirm with
@@ -97,7 +98,7 @@ let getpassword autogen =
         | false ->
             raise @@ Libcithare.Error.unmatched_password
       in
-      first
+      Some first
 
 let validate t =
   let { replace; website = _; username; mail; autogen } = t in
@@ -128,9 +129,16 @@ let run t =
   let { replace; website; username; mail; autogen } = t in
   let () = validate t in
   let password = getpassword autogen in
+  let password =
+    match password with
+    | Some p ->
+        p
+    | None ->
+        raise @@ Libcithare.Error.password_not_satisfaying
+  in
   let master_password =
-    Libcithare.Manager.ask_password_encrypted
-      ~prompt:Libcithare.Manager.Prompt.master_password ()
+    Libcithare.Input.ask_password_encrypted
+      ~prompt:Libcithare.Input.Prompt.master_password ()
   in
   let manager = Libcithare.Manager.decrypt master_password in
   let new_password =

@@ -24,6 +24,7 @@ type cithare_error =
   | OptionSimultNone of string array
   | NegativeGivenLength
   | PasswordFileWrongFormatted
+  | PasswordNotSatistying
 
 exception CithareError of cithare_error
 
@@ -35,3 +36,4 @@ let unmatched_password = CithareError UnmatchedPassword
 let option_simult_none a = CithareError (OptionSimultNone a)
 let negative_given_length = CithareError NegativeGivenLength
 let password_file_wrong_formatted = CithareError PasswordFileWrongFormatted
+let password_not_satisfaying = CithareError PasswordNotSatistying

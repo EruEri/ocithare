@@ -15,7 +15,44 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module Config = Config
-module Error = Error
-module Manager = Manager
-module Input = Input
+module Prompt = struct
+  let master_password = "Enter the master password : "
+  let master_new_password = "Enter the new master password : "
+  let master_confirm_new_password = "Confirm the new master password : "
+  let new_password = "Enter a password :"
+  let confirm_password = "Confirm password : "
+  let password_satifying = "Is password satisfying ? [y/n]"
+  let wrong_choice = "Wrong Input!\nSelect between [y/n]"
+  let empty_choice = "No Input!\nPlease select a reponse"
+  let try_again = "Do you want to try again? [y/n]"
+end
+
+(**
+    [ask_password ?(prompt = prompt) ()] gets the password from the user using [c getpass]
+    @raise Error.CithareError if c pointer is null
+*)
+let ask_password ?(prompt = Prompt.master_password) () =
+  match Cbindings.Libc.getpass prompt with
+  | Some s ->
+      s
+  | None ->
+      raise @@ Error.getpass_error
+
+let ask_password_encrypted ?(prompt = Prompt.master_password) () =
+  let s = ask_password ~prompt () in
+  Crypto.aes_string_encrypt s ()
+
+let rec validate_input ~default_message ~error_message ~empty_line_message =
+  let () = print_endline default_message in
+  let s = read_line () in
+  match s with
+  | "" ->
+      let () = prerr_endline empty_line_message in
+      validate_input ~default_message ~error_message ~empty_line_message
+  | "y" | "Y" ->
+      true
+  | "n" | "N" ->
+      false
+  | _ ->
+      let () = prerr_endline error_message in
+      validate_input ~default_message ~error_message ~empty_line_message

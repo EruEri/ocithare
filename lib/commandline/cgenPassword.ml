@@ -91,6 +91,30 @@ let create ?(exclude = CharSet.empty) ~number ~uppercase ~lowercase ~symbole
   in
   gen String.empty count
 
+let rec is_password_satifying ?(exclude = CharSet.empty) ~number ~uppercase
+    ~lowercase ~symbole count =
+  let open Libcithare in
+  let module P = Input.Prompt in
+  let password = create ~exclude ~number ~uppercase ~lowercase ~symbole count in
+  let () = Printf.printf "Generated Password\n%s\n" password in
+  let response =
+    Input.validate_input ~default_message:P.password_satifying
+      ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
+  in
+  match response with
+  | true ->
+      Some password
+  | false ->
+      let try_again =
+        Input.validate_input ~default_message:P.try_again
+          ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
+      in
+      if try_again then
+        is_password_satifying ~exclude ~number ~uppercase ~lowercase ~symbole
+          count
+      else
+        None
+
 let default_count = Some 8
 
 let term_number =

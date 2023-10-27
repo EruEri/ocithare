@@ -80,12 +80,12 @@ let run t =
         Libcithare.Manager.empty
   in
   let pass1 =
-    Libcithare.Manager.ask_password
-      ~prompt:Libcithare.Manager.Prompt.master_new_password ()
+    Libcithare.Input.ask_password
+      ~prompt:Libcithare.Input.Prompt.master_new_password ()
   in
   let pass2 =
-    Libcithare.Manager.ask_password
-      ~prompt:Libcithare.Manager.Prompt.master_confirm_new_password ()
+    Libcithare.Input.ask_password
+      ~prompt:Libcithare.Input.Prompt.master_confirm_new_password ()
   in
   let pass =
     match pass1 = pass2 with
