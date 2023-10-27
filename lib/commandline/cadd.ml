@@ -43,7 +43,7 @@ let term_website =
 let term_username =
   Arg.(
     value
-    & opt ~vopt:None (some string) None
+    & opt (some string) None
     & info [ "u"; "username" ] ~doc:"" ~docv:"USERNAME"
   )
 
@@ -76,7 +76,7 @@ let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
-let rec getpassword autogen =
+let getpassword autogen =
   match autogen with
   | Some t ->
       let () = assert (t > 0) in
