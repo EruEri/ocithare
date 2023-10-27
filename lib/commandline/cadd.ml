@@ -76,8 +76,77 @@ let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
-let run _t =
-  (* let {replace; website; username; mail; autogen} = t in *)
+let rec getpassword autogen =
+  match autogen with
+  | Some t ->
+      let () = assert (t > 0) in
+      failwith "TODO: Cadd generate password"
+  | None ->
+      let first =
+        Libcithare.Manager.ask_password
+          ~prompt:Libcithare.Manager.Prompt.new_password ()
+      in
+      let confirm =
+        Libcithare.Manager.ask_password
+          ~prompt:Libcithare.Manager.Prompt.confirm_password ()
+      in
+      let () =
+        match first = confirm with
+        | true ->
+            ()
+        | false ->
+            raise @@ Libcithare.Error.unmatched_password
+      in
+      first
+
+let validate t =
+  let { replace; website = _; username; mail; autogen } = t in
+  let () =
+    match (username, mail) with
+    | None, None when not replace ->
+        raise @@ Libcithare.Error.option_simult_none [| "username"; "mail" |]
+    | _ ->
+        ()
+  in
+  let () =
+    match autogen with
+    | Some t when t < 0 ->
+        raise @@ Libcithare.Error.negative_given_length
+    | None | Some _ ->
+        ()
+  in
+  let () =
+    match Util.FileSys.file_exists Libcithare.Config.cithare_password_file with
+    | false ->
+        raise @@ Libcithare.Error.cithare_not_configured
+    | true ->
+        ()
+  in
+  ()
+
+let run t =
+  let { replace; website; username; mail; autogen } = t in
+  let () = validate t in
+  let password = getpassword autogen in
+  let master_password =
+    Libcithare.Manager.ask_password_encrypted
+      ~prompt:Libcithare.Manager.Prompt.master_password ()
+  in
+  let manager = Libcithare.Manager.decrypt master_password in
+  let new_password =
+    Libcithare.Manager.create_password website username mail password
+  in
+  let status, manager =
+    Libcithare.Manager.replace_or_add ~replace new_password manager
+  in
+  let () = Libcithare.Manager.encrypt master_password manager in
+  let () =
+    match status with
+    | CsAdded ->
+        print_endline "Password added"
+    | CsChanged ->
+        print_endline "Password replaced"
+  in
   ()
 
 let command = cmd run

@@ -17,13 +17,21 @@
 
 type cithare_error =
   | CithareAlreadyConfigured
-  | ImportFileWrongFormatted of string
+  | CithareNotConfigured
   | GetPasswordError
   | UnmatchedPassword
+  | ImportFileWrongFormatted of string
+  | OptionSimultNone of string array
+  | NegativeGivenLength
+  | PasswordFileWrongFormatted
 
 exception CithareError of cithare_error
 
 let cithare_already_configured = CithareError CithareAlreadyConfigured
+let cithare_not_configured = CithareError CithareNotConfigured
 let import_file_wrong_formatted e = CithareError (ImportFileWrongFormatted e)
 let getpass_error = CithareError GetPasswordError
 let unmatched_password = CithareError UnmatchedPassword
+let option_simult_none a = CithareError (OptionSimultNone a)
+let negative_given_length = CithareError NegativeGivenLength
+let password_file_wrong_formatted = CithareError PasswordFileWrongFormatted

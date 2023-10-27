@@ -22,3 +22,20 @@ type t = {
   password : string;
 }
 [@@deriving yojson]
+
+let create website username mail password =
+  { website; username; mail; password }
+
+(**
+  [merge old newp] replaces [old] by [newp] and default to [old] if the [newp] are [None]
+*)
+let replace old newp =
+  let ( |? ) base default =
+    match base with Some _ -> base | None -> default
+  in
+  {
+    website = newp.website;
+    username = newp.username |? old.username;
+    mail = newp.mail |? old.mail;
+    password = newp.password;
+  }
