@@ -326,7 +326,6 @@ let finput old_v_offset old_h_offset =
       Some (old_v_offset, old_h_offset)
 
 let display ?(show_password = false) manager =
-  let () = at_exit Cbindings.Termove.end_window in
   let lines = repr_lines ~show_password manager in
   let len = display_line_width manager in
   let vertical_line = Util.Ustring.line ~first:'|' ~last:'|' len '-' in
@@ -339,4 +338,19 @@ let display ?(show_password = false) manager =
   let () = Cbindings.Termove.start_window () in
   let () = loop ~info:(true, 0, 0) dim finput lines in
   let () = Cbindings.Termove.end_window () in
+  ()
+
+let display ?(show_password = false) ?display_time manager =
+  let () = at_exit Cbindings.Termove.end_window in
+  let () =
+    match display_time with
+    | None ->
+        let () = display ~show_password manager in
+        ()
+    | Some t ->
+        let t = abs t in
+        let _ = Thread.create (display ~show_password) manager in
+        let () = Thread.delay @@ Float.of_int t in
+        ()
+  in
   ()
