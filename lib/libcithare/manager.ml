@@ -222,35 +222,32 @@ let display_line_width manager =
 let line_description ~len_website ~len_username ~len_mail ~len_password password
     =
   let s = Buffer.create 17 in
+  let w = Password.website password in
+  let m = Option.value ~default:String.empty @@ Password.mail password in
+  let u = Option.value ~default:String.empty @@ Password.username password in
+  let p = Password.password password in
+
   let () = Buffer.add_string s Cbindings.Termove.vertical_line in
-  let () = Buffer.add_string s @@ Password.website password in
+  let () = Buffer.add_string s w in
+  let () =
+    Buffer.add_string s @@ Util.Ustring.spaces @@ (len_website - String.length w)
+  in
+  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_string s u in
   let () =
     Buffer.add_string s @@ Util.Ustring.spaces
-    @@ (len_website - (String.length @@ Password.website password))
+    @@ (len_username - String.length u)
   in
   let () = Buffer.add_string s Cbindings.Termove.vertical_line in
-  let () = Option.iter (Buffer.add_string s) @@ Password.username password in
+  let () = Buffer.add_string s m in
   let () =
-    Option.iter (Buffer.add_string s)
-    @@ Option.map
-         (fun username ->
-           Util.Ustring.spaces @@ (len_username - String.length username)
-         )
-         (Password.username password)
+    Buffer.add_string s @@ Util.Ustring.spaces @@ (len_mail - String.length m)
   in
   let () = Buffer.add_string s Cbindings.Termove.vertical_line in
-  let () = Option.iter (Buffer.add_string s) @@ Password.mail password in
-  let () =
-    Option.iter (Buffer.add_string s)
-    @@ Option.map
-         (fun mail -> Util.Ustring.spaces @@ (len_mail - String.length mail))
-         (Password.mail password)
-  in
-  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
-  let () = Buffer.add_string s @@ Password.password password in
+  let () = Buffer.add_string s p in
   let () =
     Buffer.add_string s @@ Util.Ustring.spaces
-    @@ (len_password - (String.length @@ Password.password password))
+    @@ (len_password - String.length p)
   in
   let () = Buffer.add_string s Cbindings.Termove.vertical_line in
   Buffer.contents s
@@ -273,3 +270,65 @@ let repr_lines ?(show_password = false) manager =
         password
     )
     manager.passwords
+
+let rec loop ?old_winsize ?info input lines =
+  let w = Cbindings.Winsize.get () in
+  let redraw = match old_winsize with None -> true | Some size -> size <> w in
+  let () =
+    match redraw with
+    | true ->
+        Option.iter
+          (fun (r, v_offset, h_offset) ->
+            if r then
+              Draw.draw ~v_offset ~h_offset w lines
+            else
+              ()
+          )
+          info
+    | false ->
+        ()
+  in
+  match info with
+  | None ->
+      ()
+  | Some (_, v_offset, h_offset) -> (
+      match input v_offset h_offset with
+      | None ->
+          ()
+      | Some (new_v_offset, new_h_offset) ->
+          let r = not (new_v_offset = v_offset && new_h_offset = h_offset) in
+          let info = (r, new_v_offset, new_h_offset) in
+          loop ~old_winsize:w ~info input lines
+    )
+
+let finput old_v_offset old_h_offset =
+  let bytes = Bytes.create 1 in
+  let _rread = Unix.read Unix.stdin bytes 0 1 in
+  match Bytes.get bytes 0 with
+  | 'q' ->
+      None
+  | 'j' ->
+      Some (old_v_offset - 1, old_h_offset)
+  | 'l' ->
+      Some (old_v_offset + 1, old_h_offset)
+  | 'i' ->
+      Some (old_v_offset, old_h_offset + 1)
+  | 'k' ->
+      Some (old_v_offset, old_h_offset - 1)
+  | _ ->
+      Some (old_v_offset, old_h_offset)
+
+let display ?(show_password = false) manager =
+  let () = at_exit Cbindings.Termove.end_window in
+  let lines = repr_lines ~show_password manager in
+  let vertical_line =
+    String.concat String.empty
+    @@ List.init (display_line_width manager) (fun _ ->
+           Cbindings.Termove.horizontal_line
+       )
+  in
+  let lines = List.flatten @@ List.map (fun l -> [ vertical_line; l ]) lines in
+  let () = Cbindings.Termove.start_window () in
+  let () = loop ~info:(true, 0, 0) finput lines in
+  let () = Cbindings.Termove.end_window () in
+  ()

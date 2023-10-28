@@ -45,5 +45,11 @@ let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info (term_cmd run)
 
-let run _t = ()
+let run t =
+  let { show_password; display_time = _ } = t in
+  let master_password = Libcithare.Input.ask_password_encrypted () in
+  let manager = Libcithare.Manager.decrypt master_password in
+  let () = Libcithare.Manager.display ~show_password manager in
+  ()
+
 let command = cmd run
