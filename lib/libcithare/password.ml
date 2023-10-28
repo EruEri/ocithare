@@ -41,3 +41,7 @@ let replace old newp =
   }
 
 let website { website; _ } = website
+let usernam { username; _ } = username
+
+let hide password =
+  { password with password = String.map (fun _ -> '*') password.password }

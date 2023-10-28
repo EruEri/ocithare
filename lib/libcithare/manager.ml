@@ -75,7 +75,7 @@ let decrypt ?(encrypt_key = false) password =
     | Error e ->
         raise e
     | Ok None ->
-        failwith "I dont known what to do"
+        raise @@ Error.decryption_error
     | Ok (Some content) ->
         of_json_string content
   in
@@ -127,6 +127,8 @@ let replace_or_add ~replace password manager =
   manager
 
 let length manager = List.length manager.passwords
+let map f manager = { passwords = List.map f manager.passwords }
+let iter f manager = List.iter f manager.passwords
 
 (**
     [filter website manager] removes passwords in [manager] with the website [website]
@@ -158,3 +160,5 @@ let filter_rexp website manager =
       manager.passwords
   in
   { passwords }
+
+let hide_password manager = map Password.hide manager

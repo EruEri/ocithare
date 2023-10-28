@@ -1,3 +1,5 @@
-## [0.8.0]
+## [0.9.0]
 - Initial Release
-- Aligment with [cithare 0.8.0](https://github.com/EruEri/cithare)
+
+## [0.8.0]
+- [cithare 0.8.0](https://github.com/EruEri/cithare)

@@ -20,6 +20,7 @@ type cithare_error =
   | CithareNotConfigured
   | GetPasswordError
   | UnmatchedPassword
+  | DecryptionError
   | ImportFileWrongFormatted of string
   | OptionSimultNone of string array
   | MissingExpectedWhenAbsent of (string array * string array)
@@ -53,6 +54,8 @@ let missing_expecting_when_absent missing when_set =
 
 let missing_expecting_when_present missing when_set =
   CithareError (MissingExpectedWhenPresent (missing, when_set))
+
+let decryption_error = CithareError DecryptionError
 
 let emit_warning = function
   | NoMatchingPassword ->
