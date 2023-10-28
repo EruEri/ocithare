@@ -16,3 +16,13 @@
 (**********************************************************************************************)
 
 let spaces n = String.init n (fun _ -> ' ')
+
+let line ~first ~last length s =
+  String.init length (function
+    | 0 ->
+        first
+    | n when n - 1 = length ->
+        last
+    | _ ->
+        s
+    )

@@ -227,29 +227,29 @@ let line_description ~len_website ~len_username ~len_mail ~len_password password
   let u = Option.value ~default:String.empty @@ Password.username password in
   let p = Password.password password in
 
-  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_char s '|' in
   let () = Buffer.add_string s w in
   let () =
     Buffer.add_string s @@ Util.Ustring.spaces @@ (len_website - String.length w)
   in
-  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_char s '|' in
   let () = Buffer.add_string s u in
   let () =
     Buffer.add_string s @@ Util.Ustring.spaces
     @@ (len_username - String.length u)
   in
-  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_char s '|' in
   let () = Buffer.add_string s m in
   let () =
     Buffer.add_string s @@ Util.Ustring.spaces @@ (len_mail - String.length m)
   in
-  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_char s '|' in
   let () = Buffer.add_string s p in
   let () =
     Buffer.add_string s @@ Util.Ustring.spaces
     @@ (len_password - String.length p)
   in
-  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_char s '|' in
   Buffer.contents s
 
 let repr_lines ?(show_password = false) manager =
@@ -271,35 +271,42 @@ let repr_lines ?(show_password = false) manager =
     )
     manager.passwords
 
-let rec loop ?old_winsize ?info input lines =
+let restrict_size dimension offsets =
+  let v_offset, h_offset = offsets in
+  let v_len, h_len = dimension in
+  let v_offset = max v_offset 0 in
+  let v_offset = min v_offset (v_len - 1) in
+  let h_offset = max h_offset 0 in
+  let h_offset = min h_offset (h_len - 1) in
+  (v_offset, h_offset)
+
+let rec loop ?old_winsize ?info dim input lines =
   let w = Cbindings.Winsize.get () in
-  let redraw = match old_winsize with None -> true | Some size -> size <> w in
-  let () =
-    match redraw with
-    | true ->
-        Option.iter
-          (fun (r, v_offset, h_offset) ->
-            if r then
-              Draw.draw ~v_offset ~h_offset w lines
-            else
-              ()
-          )
-          info
-    | false ->
-        ()
+  let winsize, did_change =
+    match old_winsize with None -> (w, true) | Some old -> (w, w <> old)
   in
   match info with
   | None ->
       ()
-  | Some (_, v_offset, h_offset) -> (
-      match input v_offset h_offset with
-      | None ->
-          ()
-      | Some (new_v_offset, new_h_offset) ->
-          let r = not (new_v_offset = v_offset && new_h_offset = h_offset) in
-          let info = (r, new_v_offset, new_h_offset) in
-          loop ~old_winsize:w ~info input lines
-    )
+  | Some (r, v_offset, h_offset) ->
+      let () =
+        match r || did_change with
+        | true ->
+            Draw.draw ~v_offset ~h_offset w lines
+        | false ->
+            ()
+      in
+      let () =
+        match input v_offset h_offset with
+        | None ->
+            ()
+        | Some t ->
+            let new_v_offset, new_h_offset = restrict_size dim t in
+            let r = not (new_v_offset = v_offset && new_h_offset = h_offset) in
+            let info = (r, new_v_offset, new_h_offset) in
+            loop ~old_winsize:winsize ~info dim input lines
+      in
+      ()
 
 let finput old_v_offset old_h_offset =
   let bytes = Bytes.create 1 in
@@ -307,13 +314,13 @@ let finput old_v_offset old_h_offset =
   match Bytes.get bytes 0 with
   | 'q' ->
       None
-  | 'j' ->
-      Some (old_v_offset - 1, old_h_offset)
-  | 'l' ->
-      Some (old_v_offset + 1, old_h_offset)
   | 'i' ->
-      Some (old_v_offset, old_h_offset + 1)
+      Some (old_v_offset - 1, old_h_offset)
   | 'k' ->
+      Some (old_v_offset + 1, old_h_offset)
+  | 'l' ->
+      Some (old_v_offset, old_h_offset + 1)
+  | 'j' ->
       Some (old_v_offset, old_h_offset - 1)
   | _ ->
       Some (old_v_offset, old_h_offset)
@@ -321,14 +328,15 @@ let finput old_v_offset old_h_offset =
 let display ?(show_password = false) manager =
   let () = at_exit Cbindings.Termove.end_window in
   let lines = repr_lines ~show_password manager in
-  let vertical_line =
-    String.concat String.empty
-    @@ List.init (display_line_width manager) (fun _ ->
-           Cbindings.Termove.horizontal_line
-       )
+  let len = display_line_width manager in
+  let vertical_line = Util.Ustring.line ~first:'|' ~last:'|' len '-' in
+  let lines =
+    List.cons vertical_line @@ List.flatten
+    @@ List.map (fun l -> [ vertical_line; l ]) lines
   in
-  let lines = List.flatten @@ List.map (fun l -> [ vertical_line; l ]) lines in
+  let lines = List.append lines [ vertical_line ] in
+  let dim = (List.length lines, len) in
   let () = Cbindings.Termove.start_window () in
-  let () = loop ~info:(true, 0, 0) finput lines in
+  let () = loop ~info:(true, 0, 0) dim finput lines in
   let () = Cbindings.Termove.end_window () in
   ()

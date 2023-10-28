@@ -17,19 +17,21 @@
 
 let draw ?(v_offset = 0) ?(h_offset = 0) (winsize : Cbindings.Winsize.t) items =
   let () = Cbindings.Termove.redraw_empty () in
-  let v_offset = max v_offset 0 in
-  let h_offset = max h_offset 0 in
-  let items = List.filteri (fun i _ -> i + h_offset < winsize.ws_row) items in
+  let items =
+    List.filteri
+      (fun i _ -> i >= v_offset && i - v_offset < winsize.ws_row)
+      items
+  in
   List.iteri
     (fun i line ->
       let strlen = String.length line in
       let maxlen = winsize.ws_col in
       let line =
-        match v_offset >= strlen with
+        match h_offset >= strlen with
         | true ->
             line
         | false ->
-            String.sub line v_offset (strlen - v_offset)
+            String.sub line h_offset (strlen - h_offset)
       in
       let strlen = String.length line in
       let line = String.sub line 0 (min maxlen strlen) in
