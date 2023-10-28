@@ -100,13 +100,12 @@ let replace_or_add ~replace password manager =
     | true ->
         let find, passwords =
           List.fold_left
-            (fun (find, passwords) elt ->
-              let open Password in
+            (fun (find, passwords) (elt : Password.t) ->
               match find with
               | true ->
                   (find, elt :: passwords)
               | false ->
-                  if elt.website = password.website then
+                  if elt.website = password.Password.website then
                     (true, Password.replace elt password :: passwords)
                   else
                     (false, elt :: passwords)
@@ -129,6 +128,7 @@ let replace_or_add ~replace password manager =
 let length manager = List.length manager.passwords
 let map f manager = { passwords = List.map f manager.passwords }
 let iter f manager = List.iter f manager.passwords
+let fold_left f default manager = List.fold_left f default manager.passwords
 
 (**
     [filter website manager] removes passwords in [manager] with the website [website]
@@ -162,3 +162,114 @@ let filter_rexp website manager =
   { passwords }
 
 let hide_password manager = map Password.hide manager
+
+(**
+    [website_max_length manager] returns the max between the longest website in [manager] and [String.length "website"]
+*)
+let website_max_length manager =
+  let str_webitse = "website" in
+  let len_website = String.length str_webitse in
+  fold_left
+    (fun len password -> max len @@ String.length @@ Password.website password)
+    len_website manager
+
+(**
+    [password_max_length manager] returns the max between the longest password in [manager] and [String.length "password"]
+*)
+let password_max_length manager =
+  let str = "paswword" in
+  let len_website = String.length str in
+  fold_left
+    (fun len password -> max len @@ String.length @@ Password.password password)
+    len_website manager
+
+(**
+    [password_max_length manager] returns the max between the longest password in [manager] and [String.length "username"]
+*)
+let username_max_length manager =
+  let str = "username" in
+  let len_website = String.length str in
+  fold_left
+    (fun len password ->
+      max len @@ String.length
+      @@ Option.value ~default:String.empty
+      @@ Password.username password
+    )
+    len_website manager
+
+(**
+    [mail_max_length manager] returns the max between the longest mail in [manager] and [String.length "mail"]
+*)
+let mail_max_length manager =
+  let str = "mail" in
+  let len_website = String.length str in
+  fold_left
+    (fun len password ->
+      max len @@ String.length
+      @@ Option.value ~default:String.empty
+      @@ Password.mail password
+    )
+    len_website manager
+
+let display_line_width manager =
+  let w = website_max_length manager in
+  let u = username_max_length manager in
+  let m = mail_max_length manager in
+  let p = password_max_length manager in
+  let spliter_count = 5 in
+  w + u + m + p + spliter_count
+
+let line_description ~len_website ~len_username ~len_mail ~len_password password
+    =
+  let s = Buffer.create 17 in
+  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_string s @@ Password.website password in
+  let () =
+    Buffer.add_string s @@ Util.Ustring.spaces
+    @@ (len_website - (String.length @@ Password.website password))
+  in
+  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Option.iter (Buffer.add_string s) @@ Password.username password in
+  let () =
+    Option.iter (Buffer.add_string s)
+    @@ Option.map
+         (fun username ->
+           Util.Ustring.spaces @@ (len_username - String.length username)
+         )
+         (Password.username password)
+  in
+  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Option.iter (Buffer.add_string s) @@ Password.mail password in
+  let () =
+    Option.iter (Buffer.add_string s)
+    @@ Option.map
+         (fun mail -> Util.Ustring.spaces @@ (len_mail - String.length mail))
+         (Password.mail password)
+  in
+  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  let () = Buffer.add_string s @@ Password.password password in
+  let () =
+    Buffer.add_string s @@ Util.Ustring.spaces
+    @@ (len_password - (String.length @@ Password.password password))
+  in
+  let () = Buffer.add_string s Cbindings.Termove.vertical_line in
+  Buffer.contents s
+
+let repr_lines ?(show_password = false) manager =
+  let len_website = website_max_length manager in
+  let len_username = username_max_length manager in
+  let len_mail = mail_max_length manager in
+  let len_password = password_max_length manager in
+  List.map
+    (fun password ->
+      let password =
+        match show_password with
+        | true ->
+            password
+        | false ->
+            Password.hide password
+      in
+      line_description ~len_website ~len_username ~len_mail ~len_password
+        password
+    )
+    manager.passwords

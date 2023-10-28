@@ -17,3 +17,4 @@
 
 module FileSys = FileSys
 module Io = Io
+module Ustring = Ustring

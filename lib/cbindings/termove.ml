@@ -43,6 +43,20 @@ let set_cursor_next_line line = set_cursor_at (line + 1) 0
 let hide_cursor () = Printf.printf "\u{001B}[?25l"
 let show_cursor () = Printf.printf "\u{001B}[?25h"
 
+let rec draw_line length s =
+  match length with
+  | n when n <= 0 ->
+      ()
+  | n ->
+      let () = draw_string s in
+      draw_line (n - 1) s
+
+let draw_top_line length =
+  let () = draw_string upper_left_corner in
+  let () = draw_line length vertical_line in
+  let () = draw_string upper_right_corner in
+  ()
+
 let redraw_empty () =
   let () = draw_string seq_clear_saved_line in
   let () = draw_string seq_clear_screen in

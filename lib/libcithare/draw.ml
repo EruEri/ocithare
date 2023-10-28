@@ -15,35 +15,23 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type t = {
-  website : string;
-  username : (string option[@default None]);
-  mail : (string option[@default None]);
-  password : string;
-}
-[@@deriving yojson]
-
-let create website username mail password =
-  { website; username; mail; password }
-
-(**
-  [merge old newp] replaces [old] by [newp] and default to [old] if the [newp] are [None]
-*)
-let replace old newp =
-  let ( |? ) base default =
-    match base with Some _ -> base | None -> default
-  in
-  {
-    website = newp.website;
-    username = newp.username |? old.username;
-    mail = newp.mail |? old.mail;
-    password = newp.password;
-  }
-
-let website { website; _ } = website
-let username { username; _ } = username
-let password { password; _ } = password
-let mail { mail; _ } = mail
-
-let hide password =
-  { password with password = String.map (fun _ -> '*') password.password }
+let draw ?(v_offset = 0) ?(h_offset = 0) (winsize : Cbindings.Winsize.t) items =
+  let items = List.filteri (fun i _ -> i >= v_offset && i <= h_offset) items in
+  List.iteri
+    (fun i line ->
+      let strlen = String.length line in
+      let maxlen = winsize.ws_col in
+      let line =
+        match v_offset > strlen with
+        | true ->
+            line
+        | false ->
+            String.sub line v_offset (strlen - v_offset)
+      in
+      let strlen = String.length line in
+      let line = String.sub line 0 (min maxlen strlen) in
+      let () = Cbindings.Termove.draw_string line in
+      let () = Cbindings.Termove.set_cursor_at (i + 1) 0 in
+      ()
+    )
+    items
