@@ -17,37 +17,37 @@
 
 open Cmdliner
 
-let name = "show"
+let name = CexportCommon.name
 
-type t = {
-  website : string option;
-  regex : bool;
-  output : string option;
-  display_time : int option;
-  show_passord : bool;
-}
+type t = CexportCommon.export_t
 
+let fpaste ~regex ~paste password =
+  let () = ignore paste in
+  let () = ignore regex in
+  let () = print_endline password.Libcithare.Password.password in
+  ()
+
+let validate _export = ()
 let term_website = CexportCommon.term_website
 let term_regex = CexportCommon.term_regex
 let term_output = CexportCommon.term_output
 let term_display_time = CexportCommon.term_display_time
 let term_show_password = CexportCommon.term_show_password
 
-let term_cmd run =
-  let combine website regex output display_time show_passord =
-    run { website; regex; output; display_time; show_passord }
+let term_cmd () =
+  let combine website regex output =
+    let export =
+      new CexportCommon.export_t validate fpaste website regex false output
+    in
+    export#run
   in
-  Term.(
-    const combine $ term_website $ term_regex $ term_output $ term_display_time
-    $ term_show_password
-  )
+  Term.(const combine $ term_website $ term_regex $ term_output)
 
 let doc = CexportCommon.doc
 let man = [ `S Manpage.s_description; `P "Export or display passwords" ]
 
-let cmd run =
+let cmd () =
   let info = Cmd.info ~doc ~man name in
-  Cmd.v info (term_cmd run)
+  Cmd.v info (term_cmd ())
 
-let run _t = ()
-let command = cmd run
+let command = cmd ()

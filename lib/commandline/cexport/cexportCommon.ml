@@ -17,6 +17,8 @@
 
 open Cmdliner
 
+let name = "export"
+
 let term_website =
   Arg.(
     value
@@ -56,3 +58,121 @@ let term_show_password =
   Arg.(value & flag & info [ "show-password" ] ~doc:"Show plain passwords")
 
 let doc = "Export passwords"
+
+let process_paste ~paste ~regex password =
+  match paste with
+  | true ->
+      let () =
+        match
+          Macos.set_pastboard_content password.Libcithare.Password.password
+        with
+        | true ->
+            let () =
+              if regex then
+                Printf.printf "For : %s\n" password.website
+              else
+                ()
+            in
+            let () =
+              Printf.printf "Password successfully written in pasteboard\n"
+            in
+            ()
+        | false ->
+            raise @@ Libcithare.Error.set_pastboard_content_error
+      in
+      ()
+  | false ->
+      ()
+
+let process_website ~regex ~paste manager website =
+  let r =
+    if regex then
+      Str.regexp website
+    else
+      Str.regexp_string website
+  in
+  let manager = Libcithare.Manager.filter_rexp r manager in
+  let () =
+    match manager.passwords with
+    | password :: [] ->
+        process_paste ~regex ~paste password
+    | [] ->
+        Libcithare.Error.emit_no_matching_password ()
+    | _ :: _ as list ->
+        Libcithare.Error.emit_too_many_matching_password
+        @@ List.map Libcithare.Password.website list
+  in
+  ()
+
+let regex_paste manager t =
+  let () =
+    Option.iter
+      (process_website ~regex:t#regex ~paste:t#paste manager)
+      t#website
+  in
+  ()
+
+let export manager path =
+  let () = Yojson.Safe.to_file path @@ Libcithare.Manager.to_yojson manager in
+  ()
+
+let run t =
+  let () = t#validate () in
+  let master_password = Libcithare.Input.ask_password_encrypted () in
+  let manager = Libcithare.Manager.decrypt master_password in
+  let () =
+    Option.iter
+      (process_website ~regex:t#regex ~paste:t#paste manager)
+      t#website
+  in
+  let () = Option.iter (export manager) t#output in
+  ()
+
+class export_t validate fpaste website regex paste output =
+  object (self)
+    method regex = regex
+    method paste = paste
+    method website = website
+    method output = output
+
+    method process_website
+        : regex:bool -> paste:bool -> Libcithare.Manager.t -> string -> unit =
+      fun ~regex ~paste manager website ->
+        let r =
+          match regex with
+          | true ->
+              Str.regexp website
+          | false ->
+              Str.regexp_string website
+        in
+        let manager = Libcithare.Manager.filter_rexp r manager in
+        let () =
+          match manager.passwords with
+          | password :: [] ->
+              fpaste ~regex ~paste password
+          | [] ->
+              Libcithare.Error.emit_no_matching_password ()
+          | _ :: _ as list ->
+              Libcithare.Error.emit_too_many_matching_password
+              @@ List.map Libcithare.Password.website list
+        in
+        ()
+
+    method export : Libcithare.Manager.t -> string -> unit =
+      fun manager path ->
+        let () =
+          Yojson.Safe.to_file path @@ Libcithare.Manager.to_yojson manager
+        in
+        ()
+
+    method run : unit -> unit =
+      fun () ->
+        let () = validate self in
+        let master_password = Libcithare.Input.ask_password_encrypted () in
+        let manager = Libcithare.Manager.decrypt master_password in
+        let () =
+          Option.iter (self#process_website ~regex ~paste manager) website
+        in
+        let () = Option.iter (self#export manager) output in
+        ()
+  end

@@ -17,14 +17,9 @@
 
 open Cmdliner
 
-let name = "export"
+let name = CexportCommon.name
 
-type t = {
-  website : string option;
-  regex : bool;
-  paste : bool;
-  output : string option;
-}
+type t = CexportCommon.export_t
 
 let term_website = CexportCommon.term_website
 let term_regex = CexportCommon.term_regex
@@ -39,23 +34,9 @@ let term_output = CexportCommon.term_output
 let term_display_time = CexportCommon.term_display_time
 let term_show_password = CexportCommon.term_show_password
 
-let term_cmd run =
-  let combine website regex paste output =
-    run { website; regex; paste; output }
-  in
-  Term.(const combine $ term_website $ term_regex $ term_paste $ term_output)
-
-let doc = CexportCommon.doc
-let man = [ `S Manpage.s_description; `P "Export passwords" ]
-
-let cmd run =
-  let info = Cmd.info ~doc ~man name in
-  Cmd.v info (term_cmd run)
-
 let validate t =
-  let { website; paste; regex = _; output = _ } = t in
   let () =
-    match (website, paste) with
+    match (t#website, t#paste) with
     | None, true ->
         raise
         @@ Libcithare.Error.missing_expecting_when_present [| "website" |]
@@ -64,6 +45,47 @@ let validate t =
         ()
   in
   ()
+
+let fpaste ~regex ~paste password =
+  match paste with
+  | false ->
+      let () = print_endline password.Libcithare.Password.password in
+      ()
+  | true ->
+      let () =
+        match Macos.set_pastboard_content password.password with
+        | false ->
+            raise @@ Libcithare.Error.set_pastboard_content_error
+        | true ->
+            let () =
+              if regex then
+                Printf.printf "For : %s\n" password.website
+              else
+                ()
+            in
+            let () =
+              Printf.printf "Password successfully written in pasteboard\n"
+            in
+            ()
+      in
+
+      ()
+
+let term_cmd () =
+  let combine website regex paste output =
+    let export =
+      new CexportCommon.export_t validate fpaste website regex paste output
+    in
+    export#run ()
+  in
+  Term.(const combine $ term_website $ term_regex $ term_paste $ term_output)
+
+let doc = CexportCommon.doc
+let man = [ `S Manpage.s_description; `P "Export passwords" ]
+
+let cmd () =
+  let info = Cmd.info ~doc ~man name in
+  Cmd.v info (term_cmd ())
 
 let process_paste ~paste ~regex password =
   match paste with
@@ -90,42 +112,4 @@ let process_paste ~paste ~regex password =
   | false ->
       ()
 
-let process_website ~regex ~paste manager website =
-  let r =
-    if regex then
-      Str.regexp website
-    else
-      Str.regexp_string website
-  in
-  let manager = Libcithare.Manager.filter_rexp r manager in
-  let () =
-    match manager.passwords with
-    | password :: [] ->
-        process_paste ~regex ~paste password
-    | [] ->
-        Libcithare.Error.emit_no_matching_password ()
-    | _ :: _ as list ->
-        Libcithare.Error.emit_too_many_matching_password
-        @@ List.map Libcithare.Password.website list
-  in
-  ()
-
-let regex_paste manager t =
-  let { website; paste; regex; output = _ } = t in
-  let () = Option.iter (process_website ~regex ~paste manager) website in
-  ()
-
-let export manager path =
-  let () = Yojson.Safe.to_file path @@ Libcithare.Manager.to_yojson manager in
-  ()
-
-let run t =
-  let { website; paste; regex; output } = t in
-  let master_password = Libcithare.Input.ask_password_encrypted () in
-  let manager = Libcithare.Manager.decrypt master_password in
-  let () = Option.iter (process_website ~regex ~paste manager) website in
-  let () = Option.iter (export manager) output in
-  (* let () = Printf.printf "%b\n" @@ Macos.set_pastboard_content "Hello Caml" in *)
-  ()
-
-let command = cmd run
+let command = cmd ()
