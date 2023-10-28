@@ -22,11 +22,17 @@ type cithare_error =
   | UnmatchedPassword
   | ImportFileWrongFormatted of string
   | OptionSimultNone of string array
-  | MissingExpectedWhen of (string array * string array)
+  | MissingExpectedWhenAbsent of (string array * string array)
+  | MissingExpectedWhenPresent of (string array * string array)
   | NegativeGivenLength
   | PasswordFileWrongFormatted
   | PasswordNotSatistying
   | DeleteActionAbort
+  | SetPasswordContentError
+
+type cithare_warning =
+  | NoMatchingPassword
+  | TooManyMatchingPasswords of string list
 
 exception CithareError of cithare_error
 
@@ -40,6 +46,21 @@ let negative_given_length = CithareError NegativeGivenLength
 let password_file_wrong_formatted = CithareError PasswordFileWrongFormatted
 let password_not_satisfaying = CithareError PasswordNotSatistying
 let delete_password_cancel = CithareError DeleteActionAbort
+let set_pastboard_content_error = CithareError SetPasswordContentError
 
-let missing_expecting_when missing when_set =
-  CithareError (MissingExpectedWhen (missing, when_set))
+let missing_expecting_when_absent missing when_set =
+  CithareError (MissingExpectedWhenAbsent (missing, when_set))
+
+let missing_expecting_when_present missing when_set =
+  CithareError (MissingExpectedWhenPresent (missing, when_set))
+
+let emit_warning = function
+  | NoMatchingPassword ->
+      ()
+  | TooManyMatchingPasswords _ ->
+      ()
+
+let emit_no_matching_password () = emit_warning NoMatchingPassword
+
+let emit_too_many_matching_password list =
+  emit_warning @@ TooManyMatchingPasswords list

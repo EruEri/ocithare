@@ -27,11 +27,11 @@ type t = {
   show_passord : bool;
 }
 
-let term_website = CshowCommon.term_website
-let term_regex = CshowCommon.term_regex
-let term_output = CshowCommon.term_output
-let term_display_time = CshowCommon.term_display_time
-let term_show_password = CshowCommon.term_show_password
+let term_website = CexportCommon.term_website
+let term_regex = CexportCommon.term_regex
+let term_output = CexportCommon.term_output
+let term_display_time = CexportCommon.term_display_time
+let term_show_password = CexportCommon.term_show_password
 
 let term_cmd run =
   let combine website regex output display_time show_passord =
@@ -42,7 +42,7 @@ let term_cmd run =
     $ term_show_password
   )
 
-let doc = CshowCommon.doc
+let doc = CexportCommon.doc
 let man = [ `S Manpage.s_description; `P "Export or display passwords" ]
 
 let cmd run =

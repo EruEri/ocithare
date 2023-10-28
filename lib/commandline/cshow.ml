@@ -17,32 +17,9 @@
 
 open Cmdliner
 
-let term_website =
-  Arg.(
-    value
-    & opt (some string) None
-    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Specify the site"
-  )
+let name = "show"
 
-let term_regex =
-  Arg.(
-    value & flag
-    & info [ "r"; "regex" ] ~doc:"Find the website by matching its name"
-  )
-
-let term_paste =
-  Arg.(
-    value & flag
-    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
-  )
-
-let term_output =
-  Arg.(
-    value
-    & opt (some string) None
-    & info [ "o"; "output" ] ~docv:"OUTFILE"
-        ~doc:"Export passwords as json into $(docv)"
-  )
+type t = { show_password : bool; display_time : int option }
 
 let term_display_time =
   Arg.(
@@ -55,4 +32,18 @@ let term_display_time =
 let term_show_password =
   Arg.(value & flag & info [ "show-password" ] ~doc:"Show plain passwords")
 
-let doc = "Show password"
+let term_cmd run =
+  let combine show_password display_time =
+    run { show_password; display_time }
+  in
+  Term.(const combine $ term_show_password $ term_display_time)
+
+let doc = "Display passwords"
+let man = []
+
+let cmd run =
+  let info = Cmd.info ~doc ~man name in
+  Cmd.v info (term_cmd run)
+
+let run _t = ()
+let command = cmd run

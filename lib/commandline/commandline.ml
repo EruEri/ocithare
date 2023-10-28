@@ -43,6 +43,7 @@ let subcommands =
       Cinit.command;
       Cadd.command;
       Cdelete.command;
+      Cexport.command;
       Cshow.command;
       CgenPassword.command;
     ]

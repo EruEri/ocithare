@@ -39,3 +39,5 @@ let replace old newp =
     mail = newp.mail |? old.mail;
     password = newp.password;
   }
+
+let website { website; _ } = website

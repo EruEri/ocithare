@@ -19,3 +19,4 @@ module Config = Config
 module Error = Error
 module Manager = Manager
 module Input = Input
+module Password = Password

@@ -147,3 +147,14 @@ let filter website manager =
     (0, manager)
   else
     (base - new_length, new_manager)
+
+(**
+    [filter_rexp website manager] filters [manager] with the website matching the regex [website]
+*)
+let filter_rexp website manager =
+  let passwords =
+    List.filter
+      (fun password -> Str.string_match website password.Password.website 0)
+      manager.passwords
+  in
+  { passwords }

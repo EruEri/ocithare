@@ -48,7 +48,8 @@ let validate t =
   match website with
   | None when not all ->
       raise
-      @@ Libcithare.Error.missing_expecting_when [| "website" |] [| "all" |]
+      @@ Libcithare.Error.missing_expecting_when_absent [| "website" |]
+           [| "all" |]
   | _ ->
       ()
 

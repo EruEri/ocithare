@@ -16,12 +16,13 @@
 ;**********************************************************************************************;
 
 (library
- (name cshow)
+ (name cexport)
  (libraries
   cmdliner
   libcithare
+  str
   (select
-   cshow.ml
+   cexport.ml
    from
-   (macos -> cshow.macos.ml)
-   (-> cshow.others.ml))))
+   (macos -> cexport.macos.ml)
+   (-> cexport.others.ml))))

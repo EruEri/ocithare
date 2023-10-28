@@ -17,19 +17,18 @@
 
 open Cmdliner
 
-let name = "show"
+let term_website =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Specify the site"
+  )
 
-type t = {
-  website : string option;
-  regex : bool;
-  paste : bool;
-  output : string option;
-  display_time : int option;
-  show_passord : bool;
-}
-
-let term_website = CshowCommon.term_website
-let term_regex = CshowCommon.term_regex
+let term_regex =
+  Arg.(
+    value & flag
+    & info [ "r"; "regex" ] ~doc:"Find the website by matching its name"
+  )
 
 let term_paste =
   Arg.(
@@ -37,28 +36,23 @@ let term_paste =
     & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
   )
 
-let term_output = CshowCommon.term_output
-let term_display_time = CshowCommon.term_display_time
-let term_show_password = CshowCommon.term_show_password
-
-let term_cmd run =
-  let combine website regex paste output display_time show_passord =
-    run { website; regex; paste; output; display_time; show_passord }
-  in
-  Term.(
-    const combine $ term_website $ term_regex $ term_paste $ term_output
-    $ term_display_time $ term_show_password
+let term_output =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "o"; "output" ] ~docv:"OUTFILE"
+        ~doc:"Export passwords as json into $(docv)"
   )
 
-let doc = CshowCommon.doc
-let man = [ `S Manpage.s_description; `P "Export or display passwords" ]
+let term_display_time =
+  Arg.(
+    value
+    & opt (some int) None
+    & info [ "d"; "display-time" ] ~docv:"DURATION"
+        ~doc:"Show password to stdout for $(docv)"
+  )
 
-let cmd run =
-  let info = Cmd.info ~doc ~man name in
-  Cmd.v info (term_cmd run)
+let term_show_password =
+  Arg.(value & flag & info [ "show-password" ] ~doc:"Show plain passwords")
 
-let run _t =
-  (* let () = Printf.printf "%b\n" @@ Macos.set_pastboard_content "Hello Caml" in *)
-  ()
-
-let command = cmd run
+let doc = "Export passwords"
