@@ -42,8 +42,7 @@ let term_output =
   Arg.(
     value
     & opt (some string) None
-    & info [ "o"; "output" ] ~docv:"OUTFILE"
-        ~doc:"Export passwords as json into $(docv)"
+    & info [ "o" ] ~docv:"OUTFILE" ~doc:"Export passwords as json into $(docv)"
   )
 
 let term_display_time =

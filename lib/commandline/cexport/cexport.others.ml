@@ -39,7 +39,7 @@ let term_cmd () =
     let export =
       new CexportCommon.export_t validate fpaste website regex false output
     in
-    export#run
+    export#run ()
   in
   Term.(const combine $ term_website $ term_regex $ term_output)
 
