@@ -23,13 +23,7 @@ type t = CexportCommon.export_t
 
 let term_website = CexportCommon.term_website
 let term_regex = CexportCommon.term_regex
-
-let term_paste =
-  Arg.(
-    value & flag
-    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
-  )
-
+let term_paste = CexportCommon.term_paste
 let term_output = CexportCommon.term_output
 let term_display_time = CexportCommon.term_display_time
 let term_show_password = CexportCommon.term_show_password
@@ -86,30 +80,5 @@ let man = [ `S Manpage.s_description; `P "Export passwords" ]
 let cmd () =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info (term_cmd ())
-
-let process_paste ~paste ~regex password =
-  match paste with
-  | true ->
-      let () =
-        match
-          Macos.set_pastboard_content password.Libcithare.Password.password
-        with
-        | true ->
-            let () =
-              if regex then
-                Printf.printf "For : %s\n" password.website
-              else
-                ()
-            in
-            let () =
-              Printf.printf "Password successfully written in pasteboard\n"
-            in
-            ()
-        | false ->
-            raise @@ Libcithare.Error.set_pastboard_content_error
-      in
-      ()
-  | false ->
-      ()
 
 let command = cmd ()
