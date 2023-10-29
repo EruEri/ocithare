@@ -8,6 +8,12 @@
 
 
 ## How to build
+- First you will need to install those opam packages.
+
+```
+$ opam install dune xdg cmdliner dune-configurator cryptokit yojson ppx_deriving_yojson
+```
+- And
 ```
 $ git clone https://github.com/EruEri/ocithare
 $ cd ocithare

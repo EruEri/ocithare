@@ -5,15 +5,16 @@ synopsis: "A commandline password manager"
 maintainer: ["EruEri"]
 authors: ["EruEri"]
 license: "GPL-3.0"
-tags: ["password-manager"]
+tags: ["password-manager" "cli"]
 homepage: "https://github.com/EruEri/ocithare"
 bug-reports: "https://github.com/EruEri/ocithare/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.13.0"}
   "dune" {>= "3.10"}
-  "cryptokit"
-  "yojson"
-  "cmdliner"
+  "cryptokit" {>= "1.17"}
+  "ppx_deriving_yojson" {>= "3.5.3"}
+  "yojson" {>= "2.0.0"}
+  "cmdliner" {>= "1.1.0"}
   "xdg"
   "odoc" {with-doc}
 ]
