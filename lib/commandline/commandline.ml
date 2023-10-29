@@ -103,4 +103,6 @@ let subcommands =
       CgenPassword.command;
     ]
 
-let eval () = Cmd.eval subcommands
+let eval () =
+  let () = Libcithare.Error.register_cithare_error () in
+  Cmd.eval ~catch:false subcommands

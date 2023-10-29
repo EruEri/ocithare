@@ -47,6 +47,55 @@ module Repr = struct
         @@ String.concat "\n\t- " website
     | CannotSaveState p ->
         Printf.sprintf "Can’t save state at %s" p
+
+  let string_of_options array =
+    String.concat ", " @@ List.map (Printf.sprintf "-%s") @@ Array.to_list array
+
+  let string_of_cithare_error =
+    let sprintf = Printf.sprintf in
+    function
+    | CithareAlreadyConfigured ->
+        sprintf "%s is already configured" Config.cithare_name
+    | CithareNotConfigured ->
+        sprintf "%s is not configured\n run cithare-init" Config.cithare_name
+    | GetPasswordError ->
+        sprintf "getpass(3) failed"
+    | UnmatchedPassword ->
+        sprintf "Passwords doesn't match"
+    | DecryptionError ->
+        sprintf "Decryption Error, you probabily mistyped your password"
+    | ImportFileWrongFormatted file ->
+        sprintf "The file %s is not formatted as expected" file
+    | OptionSimultNone options ->
+        sprintf "Those options can't be absent at the same time %s"
+        @@ string_of_options options
+    | MissingExpectedWhenAbsent (options, absents) ->
+        let be = match Array.length absents with 0 | 1 -> "is" | _ -> "are" in
+        sprintf "This options %s must be present if %s %s absent"
+          (string_of_options options)
+          (string_of_options absents)
+          be
+    | MissingExpectedWhenPresent (options, present) ->
+        let be = match Array.length present with 0 | 1 -> "is" | _ -> "are" in
+        sprintf "This options %s must be present if %s %s present"
+          (string_of_options options)
+          (string_of_options present)
+          be
+    | NegativeGivenLength ->
+        sprintf "Can't give a negative length"
+    | PasswordFileWrongFormatted ->
+        sprintf "Password file is not formatted as expected"
+    | PasswordNotSatistying ->
+        "Abort password not satisfying"
+    | DeleteActionAbort ->
+        "Delete aborted"
+    | SetPasswordContentError ->
+        "Fail to write to the clipboard"
+
+  let string_of_color_cithare_error e =
+    Printf.sprintf "%s : %s"
+      (Cbindings.Termove.sprintf Cbindings.Termove.fg_red "error")
+      (string_of_cithare_error e)
 end
 
 let cithare_already_configured = CithareError CithareAlreadyConfigured
@@ -79,3 +128,11 @@ let emit_cannot_save_state path = emit_warning @@ CannotSaveState path
 
 let emit_too_many_matching_password list =
   emit_warning @@ TooManyMatchingPasswords list
+
+let register_cithare_error () =
+  Printexc.register_printer (function
+    | CithareError e ->
+        Option.some @@ Printf.sprintf "\n%s" @@ Repr.string_of_color_cithare_error e
+    | _ ->
+        None
+    )
