@@ -77,7 +77,7 @@ OPTIONS
 
 ## Export
 
-To select a password or t export all the passwords into a file, use the ```export``` subcommand
+To select a password or export all the passwords into a file, use the ```export``` subcommand
 ```
 $ cithare export --help
 NAME
@@ -107,7 +107,7 @@ OPTIONS
 
 ## Show
 
-To show the password, paste it in your pasteboard or export all the passwords into a file use the ```show``` subcommand
+To see all your registered password, ```show``` subcommand
 
 ```
 $ cithare show --help
