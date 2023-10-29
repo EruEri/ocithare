@@ -93,11 +93,11 @@ let save_state ?(encrypt_key = false) master_password manager =
       ~symbole:false 8
   in
   let name =
-    Printf.sprintf "%s %s %u-%u-%u %u-%u-%u" Config.cithare_name random_name
-      (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday time.tm_hour
-      time.tm_min time.tm_sec
+    Printf.sprintf "%s %s %02u-%02u-%02u %02u-%02u-%02u" Config.cithare_name
+      random_name (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
+      time.tm_hour time.tm_min time.tm_sec
   in
-  let path = Filename.concat Config.cithare_share_dir name in
+  let path = Filename.concat Config.cithare_state_dir name in
   let () =
     match
       Util.FileSys.mkfilep Config.xdg_state [ Config.cithare_name ] name
