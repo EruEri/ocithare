@@ -30,6 +30,7 @@ type cithare_error =
   | PasswordNotSatistying
   | DeleteActionAbort
   | SetPasswordContentError
+  | EmptyCharSet
 
 type cithare_warning =
   | NoMatchingPassword
@@ -91,6 +92,8 @@ module Repr = struct
         "Delete aborted"
     | SetPasswordContentError ->
         "Fail to write to the clipboard"
+    | EmptyCharSet ->
+        "The charset is empty"
 
   let string_of_color_cithare_error e =
     Printf.sprintf "%s : %s"
@@ -109,6 +112,7 @@ let password_file_wrong_formatted = CithareError PasswordFileWrongFormatted
 let password_not_satisfaying = CithareError PasswordNotSatistying
 let delete_password_cancel = CithareError DeleteActionAbort
 let set_pastboard_content_error = CithareError SetPasswordContentError
+let empty_char_set = CithareError EmptyCharSet
 
 let missing_expecting_when_absent missing when_set =
   CithareError (MissingExpectedWhenAbsent (missing, when_set))

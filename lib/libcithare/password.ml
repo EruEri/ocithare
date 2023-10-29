@@ -40,12 +40,13 @@ module Generate = struct
   (**
     [create ?(exclude = CharSet.empty) ~number ~uppercase ~lowercase ~symbole] creates a password using several charsets.
     if [number], [uppercase], [lowercase] and [symbole] are all false, [create] defaults to use [alphanumerical] charset
-    @raise Invalid_argument if the char set after all the filter is empty or [count <= 0]
+    @raise [Error.CithareError EmptyCharSet] if the char set after all the filter is empty
+    @raise Invalid_argument is [cout <= 0]
 *)
   let create ?(exclude = CharSet.empty) ~number ~uppercase ~lowercase ~symbole
       count =
     let number, uppercase, lowercase, symbole =
-      match number && uppercase && lowercase && symbole with
+      match number || uppercase || lowercase || symbole with
       | true ->
           (number, uppercase, lowercase, symbole)
       | false ->
@@ -65,7 +66,7 @@ module Generate = struct
     let () =
       match set = CharSet.empty with
       | true ->
-          invalid_arg "Empty Char Set"
+          raise @@ Error.empty_char_set
       | false ->
           ()
     in
