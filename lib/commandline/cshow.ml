@@ -47,6 +47,7 @@ let cmd run =
 
 let run t =
   let { show_password; display_time } = t in
+  let () = Libcithare.Manager.check_initialized () in
   let master_password = Libcithare.Input.ask_password_encrypted () in
   let manager = Libcithare.Manager.decrypt master_password in
   let () = Libcithare.Manager.display ~show_password ?display_time manager in
