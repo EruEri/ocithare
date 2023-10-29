@@ -36,8 +36,39 @@ let term_cmd run =
   let combine force import = run @@ { force; import } in
   Term.(const combine $ term_force $ term_import)
 
+let p e = `P e
+let i a b = `I (a, b)
+let noblank = `Noblank
 let doc = "Initialize $(mname)"
-let man = []
+let pre s = `Pre s
+
+let json_description =
+  "passwords: array of passwords\n\
+  \    password : object\n\
+  \      website: string (required)\n\
+  \      username : string (optional)\n\
+  \      mail : string (optional)\n\
+  \      password : (required)"
+
+let man =
+  [
+    `S Manpage.s_description;
+    p
+    @@ Printf.sprintf
+         "Initialize $(mname) by creating $(b,XDG_DATA_HOME/cithare/%s) file"
+         Libcithare.Config.password_file;
+    p
+      "If $(mname) has already been initialized, $(iname) will raise an \
+       exception unless the $(b,--force) option is given which will delete the \
+       existing $(mname) installation";
+    p "To import existing passwords, use $(b,--import <FILE>)";
+    noblank;
+    p
+      "Imported passwords $(b,must be) formatted as a json according to the \
+       following structure :";
+    pre json_description;
+    p "Passwords exported throught $(mname)$(b,-export(1)) can be imported";
+  ]
 
 let cmd run =
   let info = Cmd.info ~doc ~man name in

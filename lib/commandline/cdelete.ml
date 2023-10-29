@@ -36,8 +36,8 @@ let term_cmd run =
   let combine all website = run { all; website } in
   Term.(const combine $ term_all $ term_website)
 
-let doc = "Delete password from the password manager"
-let man = []
+let doc = "Delete passwords to $(mname)"
+let man = [ `S Manpage.s_description; `P doc ]
 
 let cmd run =
   let info = Cmd.info ~doc ~man name in

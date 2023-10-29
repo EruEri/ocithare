@@ -47,7 +47,7 @@ let term_cmd () =
   Term.(const combine $ term_website $ term_regex $ term_output)
 
 let doc = CexportCommon.doc
-let man = [ `S Manpage.s_description; `P "Export or display passwords" ]
+let man = [ `S Manpage.s_description; `P "Export passwords" ]
 
 let cmd () =
   let info = Cmd.info ~doc ~man name in

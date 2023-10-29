@@ -15,13 +15,65 @@
 ;*                                                                                            *;
 ;**********************************************************************************************;
 
-(executable
- (public_name cithare)
- (name cithare)
- (libraries commandline))
+(rule
+ (with-stdout-to
+  cithare.1
+  (run %{bin:cithare} --help=groff)))
 
-(env
- (dev (flags))
- (release
-  (ocamlopt_flags
-   (:standard -O3))))
+(install
+ (section man)
+ (files cithare.1))
+
+(rule
+ (with-stdout-to
+  cithare-init.1
+  (run %{bin:cithare} init --help=groff)))
+
+(install
+ (section man)
+ (files cithare-init.1))
+
+(rule
+ (with-stdout-to
+  cithare-add.1
+  (run %{bin:cithare} add --help=groff)))
+
+(install
+ (section man)
+ (files cithare-add.1))
+
+(rule
+ (with-stdout-to
+  cithare-delete.1
+  (run %{bin:cithare} delete --help=groff)))
+
+(install
+ (section man)
+ (files cithare-delete.1))
+
+(rule
+ (with-stdout-to
+  cithare-export.1
+  (run %{bin:cithare} export --help=groff)))
+
+(install
+ (section man)
+ (files cithare-export.1))
+
+(rule
+ (with-stdout-to
+  cithare-show.1
+  (run %{bin:cithare} show --help=groff)))
+
+(install
+ (section man)
+ (files cithare-show.1))
+
+(rule
+ (with-stdout-to
+  cithare-generate-password.1
+  (run %{bin:cithare} generate-password --help=groff)))
+
+(install
+ (section man)
+ (files cithare-generate-password.1))

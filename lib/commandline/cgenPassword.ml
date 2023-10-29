@@ -112,7 +112,7 @@ let man =
     `P doc;
     `P
       "If no charset is given, $(iname) will use the $(b,alphanumeric \
-       charaset), which is like $(b,-nlu)";
+       charaset), which is equivalent to $(iname) $(b,-nlu)";
   ]
 
 let cmd run =

@@ -4,13 +4,15 @@
 - ocithare is the rewrite of [cithare](https://github.com/EruEri/cithare), which is written in swift, in OCaml
 - ocithare is a command line password manager
 
-## How to build
 
+
+
+## How to build
 ```
 $ git clone https://github.com/EruEri/ocithare
 $ cd ocithare
-$ make (or ```dune build```)
-$ make install (or ```dune install```)
+$ make
+$ make install
 ```
 
 ## Initialization
