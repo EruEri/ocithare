@@ -29,6 +29,7 @@ let term_display_time = CexportCommon.term_display_time
 let term_show_password = CexportCommon.term_show_password
 
 let validate t =
+  let () = Libcithare.Manager.check_initialized () in
   let () =
     match (t#website, t#paste) with
     | None, true ->

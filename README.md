@@ -19,13 +19,18 @@ To start with cithare, you first need to initialize it
 
 ```
 $ cithare init --help
-OVERVIEW: Initialize the password Manager
+NAME
+       cithare-init - Initialize cithare
 
-USAGE: cithare init [--force]
+SYNOPSIS
+       cithare init [--force] [--import=<FILE>] [OPTION]…
 
-OPTIONS:
-  -f, --force             Force the initialization
-  -h, --help              Show help information.
+OPTIONS
+       -f, --force
+           Force the initialisation
+
+       -i <FILE>, --import=<FILE>
+           Initialize with a formatted password file
 ```
 
 ## Add
@@ -34,19 +39,62 @@ To add to a password, use the ```add``` subcommand
 
 ```
 $ cithare add --help
-OVERVIEW: Add a new password into the password Manager
+NAME
+       cithare-add - Add passwords to cithare
 
-USAGE: cithare add [--replace] --web-site <web-site> [--username <username>] [--mail <mail>] [--auto-gen <auto-gen>]
+SYNOPSIS
+       cithare add [OPTION]…
 
-OPTIONS:
-  -r, --replace           Use in order to replace a password
-  -w, --web-site <web-site>
-  -u, --username <username>
-  -m, --mail <mail>
-  --auto-gen <auto-gen>   Generate an automatic password with a given lenght
-  -h, --help              Show help information.
+DESCRIPTION
+       Add passwords to cithare
 
+       At least --website or --username must be present
+
+OPTIONS
+       -a LENGTH, --autogen=LENGTH
+           Generate an automatic password with a given length
+
+       -m MAIL, --mail=MAIL
+           Chosen MAIL
+
+       -r, --replace
+           Replace a password
+
+       -u USERNAME, --username=USERNAME
+           Chosen USERNAME
+
+       -w WEBSITE, --website=WEBSITE (required)
+           Chosen WEBSITE
 ```
+
+## Export
+
+To select a password or t export all the passwords into a file, use the ```export``` subcommand
+```
+NAME
+       cithare-export - Export passwords
+
+SYNOPSIS
+       cithare export [OPTION]…
+
+DESCRIPTION
+       Export passwords
+
+OPTIONS
+       -o OUTFILE
+           Export passwords as json into OUTFILE
+
+       -p, --paste
+           Write the password into the pasteboard
+
+       -r, --regex
+           Find the website by matching its name
+
+       -w WEBSITE, --website=WEBSITE
+           Specify the site
+```
+
+- Currently the **paste** is only available on macOS
 
 ## Show
 
@@ -54,18 +102,18 @@ To show the password, paste it in your pasteboard or export all the passwords in
 
 ```
 $ cithare show --help
-OVERVIEW: Show password
+NAME
+       cithare-show - Display passwords
 
-USAGE: cithare show [--display-time <display-time>] [--website <website>] [--regex] [--output <output>] [--paste]
+SYNOPSIS
+       cithare show [--display-time=DURATION] [--show-password] [OPTION]…
 
-OPTIONS:
-  -d, --display-time, --dt <display-time>
-                          Display duration in seconds (default: 5)
-  -w, --website <website> Specify the site
-  -r, --regex             Find the website by matching its name
-  -o, --output <output>   Output file
-  -p, --paste             Write the password into the pasteboard
-  -h, --help              Show help information.
+OPTIONS
+       -d DURATION, --display-time=DURATION
+           Show password to stdout for DURATION
+
+       --show-password
+           Show plain passwords
 ```
 
 # Warning

@@ -27,7 +27,10 @@ let fpaste ~regex ~paste password =
   let () = print_endline password.Libcithare.Password.password in
   ()
 
-let validate _export = ()
+let validate _export =
+  let () = Libcithare.Manager.check_initialized () in
+  ()
+
 let term_website = CexportCommon.term_website
 let term_regex = CexportCommon.term_regex
 let term_output = CexportCommon.term_output

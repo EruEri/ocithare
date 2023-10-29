@@ -28,28 +28,27 @@ type t = {
 }
 
 let term_replace =
-  Arg.(
-    value & flag
-    & info [ "r"; "replace" ] ~doc:"Use in order to replace a password"
-  )
+  Arg.(value & flag & info [ "r"; "replace" ] ~doc:"Replace a password")
 
 let term_website =
   Arg.(
     required
     & opt (some string) None
-    & info [ "w"; "website" ] ~doc:"" ~docv:"WEBSITE"
+    & info [ "w"; "website" ] ~doc:"Chosen $(docv)" ~docv:"WEBSITE"
   )
 
 let term_username =
   Arg.(
     value
     & opt (some string) None
-    & info [ "u"; "username" ] ~doc:"" ~docv:"USERNAME"
+    & info [ "u"; "username" ] ~doc:"Chosen $(docv)" ~docv:"USERNAME"
   )
 
 let term_mail =
   Arg.(
-    value & opt (some string) None & info [ "m"; "mail" ] ~doc:"" ~docv:"MAIL"
+    value
+    & opt (some string) None
+    & info [ "m"; "mail" ] ~doc:"Chosen $(docv)" ~docv:"MAIL"
   )
 
 let term_autogen =
@@ -70,7 +69,13 @@ let term_cmd run =
   )
 
 let doc = "Add passwords to $(mname)"
-let man = [ (* `S Manpage.s_description; *) ]
+
+let man =
+  [
+    `S Manpage.s_description;
+    `P doc;
+    `P "At least $(b,--website) or $(b,--username) must be present";
+  ]
 
 let cmd run =
   let info = Cmd.info ~doc ~man name in
@@ -101,6 +106,7 @@ let getpassword autogen =
       Some first
 
 let validate t =
+  let () = Libcithare.Manager.check_initialized () in
   let { replace; website = _; username; mail; autogen } = t in
   let () =
     match (username, mail) with

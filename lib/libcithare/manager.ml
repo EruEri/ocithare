@@ -37,6 +37,13 @@ let of_json_string string =
   | Error _ ->
       raise @@ Error.password_file_wrong_formatted
 
+let check_initialized () =
+  match Util.FileSys.file_exists Config.cithare_password_file with
+  | false ->
+      raise @@ Error.cithare_not_configured
+  | true ->
+      ()
+
 (**
     [encrypt ?encrypt_key password manager] encrypt [manager] with [password] and store bytes [Config.cithare_password_file]
     if [encrypt_key], [password] is encrypted with [aes256]

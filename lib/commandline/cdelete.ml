@@ -45,6 +45,7 @@ let cmd run =
 
 let validate t =
   let { all; website } = t in
+  let () = Libcithare.Manager.check_initialized () in
   match website with
   | None when not all ->
       raise

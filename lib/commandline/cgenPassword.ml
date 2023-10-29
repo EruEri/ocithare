@@ -51,10 +51,19 @@ type t = {
 }
 
 (**
+    [create ?(exclude = CharSet.empty) ~number ~uppercase ~lowercase ~symbole] creates a password using several charsets.
+    if [number], [uppercase], [lowercase] and [symbole] are all false, [create] defaults to use [alphanumerical] charset
     @raise Invalid_argument if the char set after all the filter is empty or [count <= 0]
 *)
 let create ?(exclude = CharSet.empty) ~number ~uppercase ~lowercase ~symbole
     count =
+  let number, uppercase, lowercase, symbole =
+    match number && uppercase && lowercase && symbole with
+    | true ->
+        (number, uppercase, lowercase, symbole)
+    | false ->
+        (true, true, true, symbole)
+  in
   let set = match number with true -> numbers | false -> CharSet.empty in
   let set =
     match uppercase with true -> CharSet.union set uppercases | false -> set
@@ -159,7 +168,15 @@ let term_cmd run =
   )
 
 let doc = "Generate a random password"
-let man = []
+
+let man =
+  [
+    `S Manpage.s_description;
+    `P doc;
+    `P
+      "If no charset is given, $(iname) will use the $(b,alphanumeric \
+       charaset), which is like $(b,-nlu)";
+  ]
 
 let cmd run =
   let info = Cmd.info ~man ~doc name in

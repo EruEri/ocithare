@@ -23,6 +23,7 @@ let version =
 
 let cithare_name = "cithare"
 let password_file = ".citharerc"
+let cithare_env_save_state = "CITHARE_SAVE_STATE"
 let ( / ) = Filename.concat
 let xdg = Xdg.create ~env:Sys.getenv_opt ()
 let xdg_data = Xdg.data_dir xdg
@@ -35,3 +36,11 @@ let cithare_state_dir = xdg_data / cithare_name
    [$XDG_DATA_HOME/share/cithare/.citharerc]
 *)
 let cithare_password_file = cithare_share_dir / password_file
+
+let cithare_save_state () =
+  cithare_env_save_state |> Sys.getenv_opt
+  |> Option.map (fun s ->
+         let s = String.lowercase_ascii s in
+         match s with "no" | "false" | "0" -> false | _ -> true
+     )
+  |> Option.value ~default:true
