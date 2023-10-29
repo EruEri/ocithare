@@ -111,7 +111,7 @@ let validate t =
   let () =
     match (username, mail) with
     | None, None when not replace ->
-        raise @@ Libcithare.Error.option_simult_none [| "username"; "mail" |]
+        raise @@ Libcithare.Error.option_simult_none [| "-username"; "-mail" |]
     | _ ->
         ()
   in

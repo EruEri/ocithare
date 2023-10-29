@@ -132,7 +132,8 @@ let emit_too_many_matching_password list =
 let register_cithare_error () =
   Printexc.register_printer (function
     | CithareError e ->
-        Option.some @@ Printf.sprintf "\n%s" @@ Repr.string_of_color_cithare_error e
+        Option.some @@ Printf.sprintf "\n%s"
+        @@ Repr.string_of_color_cithare_error e
     | _ ->
         None
     )
