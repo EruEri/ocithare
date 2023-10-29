@@ -60,3 +60,15 @@ let rec mkdirp root componenent =
           )
       in
       mkdirp path q
+
+let mkfilep root componenent file =
+  let ( let* ) = Result.bind in
+
+  let* () = mkdirp root componenent in
+  let path = List.fold_left Filename.concat root componenent in
+  let path = Filename.concat path file in
+  try
+    let chan = Out_channel.open_text path in
+    let () = close_out chan in
+    Ok ()
+  with _ -> Error path

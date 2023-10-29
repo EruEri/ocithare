@@ -34,6 +34,7 @@ type cithare_error =
 type cithare_warning =
   | NoMatchingPassword
   | TooManyMatchingPasswords of string list
+  | CannotSaveState of string
 
 exception CithareError of cithare_error
 
@@ -62,8 +63,11 @@ let emit_warning = function
       ()
   | TooManyMatchingPasswords _ ->
       ()
+  | CannotSaveState _p ->
+      ()
 
 let emit_no_matching_password () = emit_warning NoMatchingPassword
+let emit_cannot_save_state path = emit_warning @@ CannotSaveState path
 
 let emit_too_many_matching_password list =
   emit_warning @@ TooManyMatchingPasswords list

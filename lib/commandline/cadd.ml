@@ -147,6 +147,7 @@ let run t =
       ~prompt:Libcithare.Input.Prompt.master_password ()
   in
   let manager = Libcithare.Manager.decrypt master_password in
+  let () = Libcithare.Manager.save_state master_password manager in
   let new_password =
     Libcithare.Manager.create_password website username mail password
   in

@@ -104,6 +104,7 @@ let run t =
     | 0 ->
         print_endline "No password deleted"
     | n ->
+        let () = Libcithare.Manager.save_state master_password manager in
         Printf.printf "Passwords deleted = %u\n" n
   in
   ()

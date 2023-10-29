@@ -48,7 +48,8 @@ let check_initialized () =
     [encrypt ?encrypt_key password manager] encrypt [manager] with [password] and store bytes [Config.cithare_password_file]
     if [encrypt_key], [password] is encrypted with [aes256]
 *)
-let encrypt ?(encrypt_key = false) password manager =
+let encrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file)
+    password manager =
   let key =
     match encrypt_key with
     | true ->
@@ -56,10 +57,7 @@ let encrypt ?(encrypt_key = false) password manager =
     | false ->
         password
   in
-  let _ =
-    Crypto.encrypt ~where:Config.cithare_password_file ~key
-      ~iv:Crypto.default_iv (to_data manager)
-  in
+  let _ = Crypto.encrypt ~where ~key ~iv:Crypto.default_iv (to_data manager) in
   ()
 
 (**
@@ -87,6 +85,34 @@ let decrypt ?(encrypt_key = false) password =
         of_json_string content
   in
   t
+
+let save_state ?(encrypt_key = false) master_password manager =
+  let time = Unix.gmtime (Unix.time ()) in
+  let random_name =
+    Password.Generate.create ~number:true ~uppercase:true ~lowercase:true
+      ~symbole:false 8
+  in
+  let name =
+    Printf.sprintf "%s %s %u-%u-%u %u-%u-%u" Config.cithare_name random_name
+      (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday time.tm_hour
+      time.tm_min time.tm_sec
+  in
+  let path = Filename.concat Config.cithare_share_dir name in
+  let () =
+    match
+      Util.FileSys.mkfilep Config.xdg_state [ Config.cithare_name ] name
+    with
+    | Error path ->
+        let () = Error.emit_cannot_save_state path in
+        ()
+    | Ok () -> (
+        try encrypt ~encrypt_key ~where:path master_password manager
+        with _ ->
+          let () = Error.emit_cannot_save_state path in
+          ()
+      )
+  in
+  ()
 
 let create_password website username mail password =
   Password.create website username mail password

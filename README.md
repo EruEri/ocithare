@@ -71,6 +71,7 @@ OPTIONS
 
 To select a password or t export all the passwords into a file, use the ```export``` subcommand
 ```
+$ cithare export --help
 NAME
        cithare-export - Export passwords
 
