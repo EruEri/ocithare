@@ -42,6 +42,15 @@ let draw_char = Printf.printf "%c%!"
 let set_cursor_next_line line = set_cursor_at (line + 1) 0
 let hide_cursor () = Printf.printf "\u{001B}[?25l"
 let show_cursor () = Printf.printf "\u{001B}[?25h"
+let ascii_color_reset = "\u{001B}[0m"
+
+let sprintf color s =
+  Printf.sprintf "\u{001B}[%um%s%s" color s ascii_color_reset
+
+let fg_red = 31
+let fg_yellow = 33
+let fg_magenta = 35
+let sprintf_red s = sprintf fg_red s
 
 let rec draw_line length s =
   match length with

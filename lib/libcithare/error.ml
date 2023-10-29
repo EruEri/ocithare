@@ -38,6 +38,17 @@ type cithare_warning =
 
 exception CithareError of cithare_error
 
+module Repr = struct
+  let string_of_warning = function
+    | NoMatchingPassword ->
+        "No matching password"
+    | TooManyMatchingPasswords website ->
+        Printf.sprintf "Conflicting matching passwords:\n\t- %s"
+        @@ String.concat "\n\t- " website
+    | CannotSaveState p ->
+        Printf.sprintf "Can’t save state at %s" p
+end
+
 let cithare_already_configured = CithareError CithareAlreadyConfigured
 let cithare_not_configured = CithareError CithareNotConfigured
 let import_file_wrong_formatted e = CithareError (ImportFileWrongFormatted e)
@@ -58,13 +69,10 @@ let missing_expecting_when_present missing when_set =
 
 let decryption_error = CithareError DecryptionError
 
-let emit_warning = function
-  | NoMatchingPassword ->
-      ()
-  | TooManyMatchingPasswords _ ->
-      ()
-  | CannotSaveState _p ->
-      ()
+let emit_warning e =
+  Printf.printf "%s : %s\n"
+    (Cbindings.Termove.sprintf Cbindings.Termove.fg_magenta "warning")
+    (Repr.string_of_warning e)
 
 let emit_no_matching_password () = emit_warning NoMatchingPassword
 let emit_cannot_save_state path = emit_warning @@ CannotSaveState path

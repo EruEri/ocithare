@@ -1,9 +1,11 @@
 ## [0.9.0]
 - Initial Release
-- Breaking change
+- Breaking change with [0.8.0]
     - Key encryption
 - Split show subcommand:
-    - Export 
+    - Export:
+        - option -w will now print to stdout if --paste is not present
+            - Previously: Do nothing
     - Show
 - Change option to the generate-password subcommand
 
