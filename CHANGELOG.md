@@ -1,3 +1,6 @@
+## [0.9.1]
+- [Clipboard paste other than macOS](https://github.com/EruEri/ocithare/pull/1) 
+
 ## [0.9.0]
 - Initial Release
 - Breaking change with [0.8.0]
