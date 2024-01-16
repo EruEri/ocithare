@@ -22,14 +22,41 @@ let name = CexportCommon.name
 type t = CexportCommon.export_t
 
 let fpaste ~regex ~paste password =
-  let () = ignore paste in
-  let () = ignore regex in
-  let () = print_endline password.Libcithare.Password.password in
-  ()
+  match paste with
+  | false ->
+      let () = print_endline password.Libcithare.Password.password in
+      ()
+  | true ->
+      let code =
+        Sys.command
+        @@ Printf.sprintf "echo \'%s\' | xclip -i -selection clipboard"
+             password.password
+      in
+      let () =
+        match code with
+        | 0 ->
+            let () =
+              if regex then
+                Printf.printf "For : %s\n" password.website
+            in
+            Printf.printf "Password successfully written in pasteboard\n"
+        | _ ->
+            raise @@ Libcithare.Error.set_pastboard_content_error
+      in
+      ()
 
 let validate _export =
   let () = Libcithare.Manager.check_initialized () in
   ()
+
+let term_xclip =
+  Arg.(
+    value & flag
+    & info [ "x" ]
+        ~doc:
+          "Write the password into the clipboard X selection by invoking \
+           $(b,xclip(1))"
+  )
 
 let term_website = CexportCommon.term_website
 let term_regex = CexportCommon.term_regex
@@ -38,13 +65,13 @@ let term_display_time = CexportCommon.term_display_time
 let term_show_password = CexportCommon.term_show_password
 
 let term_cmd () =
-  let combine website regex output =
+  let combine website regex paste output =
     let export =
-      new CexportCommon.export_t validate fpaste website regex false output
+      new CexportCommon.export_t validate fpaste website regex paste output
     in
     export#run ()
   in
-  Term.(const combine $ term_website $ term_regex $ term_output)
+  Term.(const combine $ term_website $ term_regex $ term_xclip $ term_output)
 
 let doc = CexportCommon.doc
 let man = [ `S Manpage.s_description; `P "Export passwords" ]
