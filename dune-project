@@ -2,7 +2,7 @@
 
 (name ocithare)
 
-(version "0.9.1")
+(version "0.10.0")
 
 (generate_opam_files true)
 

@@ -1,4 +1,4 @@
-## [Unrealeased]
+## [0.10.0]
 - [cithare-add: Geneate password with the option of cithare-generate-password](https://github.com/EruEri/ocithare/pull/2)
 
 ## [0.9.1]
