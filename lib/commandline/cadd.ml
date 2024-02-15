@@ -70,7 +70,9 @@ let man =
     `P
       "If one of the following option is provided $(b,-d, -e, -l, -s, -u), \
        cithare-add(1) will automatically generate a password and the options \
-       to generate the password are the same that cithare-generate-password(1)";
+       to generate the password are the same than cithare-generate-password(1)";
+    `P 
+      "$(b,-c) option is only relevant and used if cithare-add(1) will automatically generate a password";
     `S Manpage.s_see_also;
     `P "cithare-generate-password(1)";
   ]
