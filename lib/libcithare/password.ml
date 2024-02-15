@@ -37,12 +37,11 @@ module Generate = struct
     let all = CharSet.diff all lowercases in
     all
 
-
   (**
     [has_options ~number ~uppercase ~lowercase ~symbole] returns true if at least one of the arguments is true,
     false otherwise.
   *)
-  let has_options ~number ~uppercase ~lowercase ~symbole = 
+  let has_options ~number ~uppercase ~lowercase ~symbole =
     number || uppercase || lowercase || symbole
 
   (**

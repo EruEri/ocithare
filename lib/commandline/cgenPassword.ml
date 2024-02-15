@@ -64,10 +64,10 @@ let rec is_password_satifying ?(exclude = CharSet.empty) ~number ~uppercase
 let default_count = Some 8
 
 let term_number =
-  Arg.(value & flag & info [ "n" ] ~doc:"Include number set [0-9]")
+  Arg.(value & flag & info [ "d" ] ~doc:"Include digit set [0-9]")
 
 let term_uppercase =
-  Arg.(value & flag & info [ "U" ] ~doc:"Include uppercased letter set [A-Z]")
+  Arg.(value & flag & info [ "u" ] ~doc:"Include uppercased letter set [A-Z]")
 
 let term_lowercase =
   Arg.(value & flag & info [ "l" ] ~doc:"Include lowercase letter set [a-z]")

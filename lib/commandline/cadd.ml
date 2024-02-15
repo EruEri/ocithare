@@ -41,7 +41,7 @@ let term_username =
   Arg.(
     value
     & opt (some string) None
-    & info [ "u"; "username" ] ~doc:"Chosen $(docv)" ~docv:"USERNAME"
+    & info [ "n"; "name"; "username" ] ~doc:"Chosen $(docv)" ~docv:"NAME"
   )
 
 let term_mail =
@@ -68,7 +68,7 @@ let man =
     `P doc;
     `P "At least $(b,--website) or $(b,--username) must be present";
     `P
-      "If one of the following option is provided $(b,-e, -l, -n, -s, -U), \
+      "If one of the following option is provided $(b,-d, -e, -l, -s, -u), \
        cithare-add(1) will automatically generate a password and the options \
        to generate the password are the same that cithare-generate-password(1)";
     `S Manpage.s_see_also;
