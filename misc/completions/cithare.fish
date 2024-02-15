@@ -13,11 +13,18 @@ complete -c cithare -n "__fish_use_subcommand" -f -a "show" -d 'Display password
 
 
 # cithare add
-complete -c cithare -n "__fish_seen_subcommand_from add" -f -r -s a -l autogen -d "Generate an automatic password with a given length"
 complete -c cithare -n "__fish_seen_subcommand_from add" -f -r -s m -l mail -d "Choosen mail"
-complete -c cithare -n "__fish_seen_subcommand_from add" -f -r -s u -l username -d "Choosen username"
+complete -c cithare -n "__fish_seen_subcommand_from add" -f -r -s n -l username -d "Choosen username"
 complete -c cithare -n "__fish_seen_subcommand_from add" -f -r -s w -l website -d "Choosen website"
 complete -c cithare -n "__fish_seen_subcommand_from add" -f -s r -l replace -d "Replace a password"
+
+# cithare generate-password
+complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_seen_subcommand_from add" -f -r -s c -l count -d "Set the length of the generated password"
+complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_seen_subcommand_from add" -f -r -s e -l exclude -d "Exclude <char> from character set"
+complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_seen_subcommand_from add" -f -s l -d "Include lowercase letter set [a-z]"
+complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_seen_subcommand_from add" -f -s d -d "Include digit set [0-9]"
+complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_seen_subcommand_from add" -f -s s -d "Include all printable character that aren't a number or a letter"
+complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_seen_subcommand_from add" -f -s u -d "Include uppercased letter set [a-z]"
 
 # cithare delete
 complete -c cithare -n "__fish_seen_subcommand_from delete" -f -r -s w -l website -d "Delete passwords matching <website>"
@@ -35,13 +42,6 @@ case '*'
     complete -c cithare -n "__fish_seen_subcommand_from export" -f -s x -d "Write  the  password  into  the  clipboard  X selection by invoking xclip(1)"  
 end
 
-# cithare generate-password
-complete -c cithare -n "__fish_seen_subcommand_from generate-password" -f -r -s c -l count -d "Set the length of the generated password"
-complete -c cithare -n "__fish_seen_subcommand_from generate-password" -f -r -s e -l exclude -d "Exclude <char> from character set"
-complete -c cithare -n "__fish_seen_subcommand_from generate-password" -f -s l -d "Include lowercase letter set [a-z]"
-complete -c cithare -n "__fish_seen_subcommand_from generate-password" -f -s n -d "Include number set [0-9]"
-complete -c cithare -n "__fish_seen_subcommand_from generate-password" -f -s s -d "Include all printable character that aren't a number or a letter"
-complete -c cithare -n "__fish_seen_subcommand_from generate-password" -f -s u -d "Include uppercased letter set [a-z]"
 
 # cithare init
 complete -c cithare -n "__fish_seen_subcommand_from init" -f -s f -l force -d "Force the initialisation"
