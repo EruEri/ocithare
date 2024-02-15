@@ -1,5 +1,5 @@
 ## [Unrealeased]
-- [cithare-add: Geneate password with the option of cithare-generate-password]
+- [cithare-add: Geneate password with the option of cithare-generate-password](https://github.com/EruEri/ocithare/pull/2)
 
 ## [0.9.1]
 - [Clipboard paste other than macOS](https://github.com/EruEri/ocithare/pull/1) 
