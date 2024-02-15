@@ -24,7 +24,7 @@ type t = {
   website : string;
   username : string option;
   mail : string option;
-  autogen : int option;
+  gen_password : CgenPassword.t;
 }
 
 let term_replace =
@@ -41,7 +41,7 @@ let term_username =
   Arg.(
     value
     & opt (some string) None
-    & info [ "u"; "username" ] ~doc:"Chosen $(docv)" ~docv:"USERNAME"
+    & info [ "n"; "name"; "username" ] ~doc:"Chosen $(docv)" ~docv:"NAME"
   )
 
 let term_mail =
@@ -51,21 +51,13 @@ let term_mail =
     & info [ "m"; "mail" ] ~doc:"Chosen $(docv)" ~docv:"MAIL"
   )
 
-let term_autogen =
-  Arg.(
-    value
-    & opt (some int) None
-    & info [ "a"; "autogen" ]
-        ~doc:"Generate an automatic password with a given length" ~docv:"LENGTH"
-  )
-
 let term_cmd run =
-  let combine replace website username mail autogen =
-    run @@ { replace; website; username; mail; autogen }
+  let combine replace website username mail gen_password =
+    run @@ { replace; website; username; mail; gen_password }
   in
   Term.(
     const combine $ term_replace $ term_website $ term_username $ term_mail
-    $ term_autogen
+    $ CgenPassword.term_cmd Fun.id
   )
 
 let doc = "Add passwords to $(mname)"
@@ -75,19 +67,34 @@ let man =
     `S Manpage.s_description;
     `P doc;
     `P "At least $(b,--website) or $(b,--username) must be present";
+    `P
+      "If one of the following option is provided $(b,-d, -e, -l, -s, -u), \
+       cithare-add(1) will automatically generate a password and the options \
+       to generate the password are the same than cithare-generate-password(1)";
+    `P
+      "$(b,-c) option is only relevant and used if cithare-add(1) will \
+       automatically generate a password";
+    `S Manpage.s_see_also;
+    `P "cithare-generate-password(1)";
   ]
 
 let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
-let getpassword autogen =
-  match autogen with
-  | Some t ->
-      let () = assert (t > 0) in
-      CgenPassword.is_password_satifying ~number:true ~uppercase:true
-        ~lowercase:true ~symbole:false t
-  | None ->
+let getpassword gen_password =
+  let CgenPassword.{ number; uppercase; lowercase; symbole; exclude; count } =
+    gen_password
+  in
+  match
+    (not (CgenPassword.CharSet.is_empty exclude))
+    || Libcithare.Password.Generate.has_options ~number ~uppercase ~lowercase
+         ~symbole
+  with
+  | true ->
+      CgenPassword.is_password_satifying ~exclude ~number ~uppercase ~lowercase
+        ~symbole count
+  | false ->
       let first =
         Libcithare.Input.ask_password
           ~prompt:Libcithare.Input.Prompt.new_password ()
@@ -107,19 +114,12 @@ let getpassword autogen =
 
 let validate t =
   let () = Libcithare.Manager.check_initialized () in
-  let { replace; website = _; username; mail; autogen } = t in
+  let { replace; website = _; username; mail; gen_password = _ } = t in
   let () =
     match (username, mail) with
     | None, None when not replace ->
         raise @@ Libcithare.Error.option_simult_none [| "-username"; "-mail" |]
     | _ ->
-        ()
-  in
-  let () =
-    match autogen with
-    | Some t when t < 0 ->
-        raise @@ Libcithare.Error.negative_given_length
-    | None | Some _ ->
         ()
   in
   let () =
@@ -132,9 +132,9 @@ let validate t =
   ()
 
 let run t =
-  let { replace; website; username; mail; autogen } = t in
+  let { replace; website; username; mail; gen_password } = t in
   let () = validate t in
-  let password = getpassword autogen in
+  let password = getpassword gen_password in
   let password =
     match password with
     | Some p ->
