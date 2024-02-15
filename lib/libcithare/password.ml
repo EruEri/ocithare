@@ -37,6 +37,14 @@ module Generate = struct
     let all = CharSet.diff all lowercases in
     all
 
+
+  (**
+    [has_options ~number ~uppercase ~lowercase ~symbole] returns true if at least one of the arguments is true,
+    false otherwise.
+  *)
+  let has_options ~number ~uppercase ~lowercase ~symbole = 
+    number || uppercase || lowercase || symbole
+
   (**
     [create ?(exclude = CharSet.empty) ~number ~uppercase ~lowercase ~symbole] creates a password using several charsets.
     if [number], [uppercase], [lowercase] and [symbole] are all false, [create] defaults to use [alphanumerical] charset
