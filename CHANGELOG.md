@@ -1,4 +1,4 @@
-## [Unreleased]
+## [0.10.1]
 - [cithare-add: Add length as a trigger for automic password generation](https://github.com/EruEri/ocithare/pull/4)
 
 ## [0.10.0]
