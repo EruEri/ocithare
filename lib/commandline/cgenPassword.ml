@@ -34,7 +34,7 @@ type t = {
   lowercase : bool;
   symbole : bool;
   exclude : CharSet.t;
-  count : int;
+  count : int option;
 }
 
 let rec is_password_satifying ?(exclude = CharSet.empty) ~number ~uppercase
@@ -61,7 +61,7 @@ let rec is_password_satifying ?(exclude = CharSet.empty) ~number ~uppercase
       else
         None
 
-let default_count = Some 8
+let default_count = 8
 
 let term_number =
   Arg.(value & flag & info [ "d" ] ~doc:"Include digit set [0-9]")
@@ -88,10 +88,11 @@ let term_exclude =
 
 let term_cout =
   Arg.(
-    required
-    & opt ~vopt:default_count (some int) default_count
-    & info [ "c"; "count" ] ~docv:"<LENGTH>"
-        ~doc:"Set the length of the generated password"
+    value
+    & opt (some int) None
+    & info ~docv:"<LENGTH>" ~doc:"Set the length of the generated password"
+        ~absent:(string_of_int default_count)
+        [ "c"; "count" ]
   )
 
 let term_cmd run =
@@ -121,6 +122,7 @@ let cmd run =
 
 let run t =
   let { number; uppercase; lowercase; symbole; exclude; count } = t in
+  let count = Option.value ~default:default_count count in
   let s = create ~exclude ~number ~uppercase ~lowercase ~symbole count in
   let () = Printf.printf "%s\n%!" s in
   ()
