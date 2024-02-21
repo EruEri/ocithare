@@ -68,12 +68,9 @@ let man =
     `P doc;
     `P "At least $(b,--website) or $(b,--username) must be present";
     `P
-      "If one of the following option is provided $(b,-d, -e, -l, -s, -u), \
+      "If one of the following option is provided $(b,-c, -d, -e, -l, -s, -u), \
        cithare-add(1) will automatically generate a password and the options \
        to generate the password are the same than cithare-generate-password(1)";
-    `P
-      "$(b,-c) option is only relevant and used if cithare-add(1) will \
-       automatically generate a password";
     `S Manpage.s_see_also;
     `P "cithare-generate-password(1)";
   ]
@@ -88,10 +85,12 @@ let getpassword gen_password =
   in
   match
     (not (CgenPassword.CharSet.is_empty exclude))
+    || Option.is_some count
     || Libcithare.Password.Generate.has_options ~number ~uppercase ~lowercase
          ~symbole
   with
   | true ->
+      let count = Option.value ~default:CgenPassword.default_count count in
       CgenPassword.is_password_satifying ~exclude ~number ~uppercase ~lowercase
         ~symbole count
   | false ->

@@ -58,18 +58,33 @@ DESCRIPTION
 
        At least --website or --username must be present
 
+       If one of the following option is provided -c, -d, -e, -l, -s, -u,
+       cithare-add(1) will automatically generate a password and the options
+       to generate the password are the same than cithare-generate-password(1)
+
 OPTIONS
-       -a LENGTH, --autogen=LENGTH
-           Generate an automatic password with a given length
+       -c <LENGTH>, --count=<LENGTH> (absent=8)
+           Set the length of the generated password
+
+       -d  Include digit set [0-9]
+
+       -e <Char>, --exclude=<Char>
+           Exclude <Char> from character set
+
+       -l  Include lowercase letter set [a-z]
 
        -m MAIL, --mail=MAIL
            Chosen MAIL
 
+       -n NAME, --username=NAME, --name=NAME
+           Chosen NAME
+
        -r, --replace
            Replace a password
 
-       -u USERNAME, --username=USERNAME
-           Chosen USERNAME
+       -s  Include all printable character that aren't a number or a letter
+
+       -u  Include uppercased letter set [A-Z]
 
        -w WEBSITE, --website=WEBSITE (required)
            Chosen WEBSITE
