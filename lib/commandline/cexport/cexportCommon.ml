@@ -76,8 +76,9 @@ class export_t validate fpaste website regex paste output =
               Str.regexp_string website
         in
         let manager = Libcithare.Manager.filter_rexp r manager in
+        let passwords = Libcithare.Manager.elements manager in
         let () =
-          match manager.passwords with
+          match passwords with
           | password :: [] ->
               fpaste ~regex ~paste password
           | [] ->
@@ -91,7 +92,7 @@ class export_t validate fpaste website regex paste output =
     method export : Libcithare.Manager.t -> string -> unit =
       fun manager path ->
         let () =
-          Yojson.Safe.to_file path @@ Libcithare.Manager.to_yojson manager
+          Libcithare.Manager.to_file path manager
         in
         ()
 

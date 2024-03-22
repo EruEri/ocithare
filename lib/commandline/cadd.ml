@@ -131,7 +131,7 @@ let validate t =
   ()
 
 let run t =
-  let { replace; website; username; mail; gen_password } = t in
+  let { replace = _; website; username; mail; gen_password } = t in
   let () = validate t in
   let password = getpassword gen_password in
   let password =
@@ -147,10 +147,10 @@ let run t =
   in
   let manager = Libcithare.Manager.decrypt master_password in
   let () = Libcithare.Manager.save_state master_password manager in
-  let new_password =
+  let _new_password =
     Libcithare.Manager.create_password website username mail password
   in
-  let status, manager =
+  (* let status, manager =
     Libcithare.Manager.replace_or_add ~replace new_password manager
   in
   let () = Libcithare.Manager.encrypt master_password manager in
@@ -160,7 +160,7 @@ let run t =
         print_endline "Password added"
     | CsChanged ->
         print_endline "Password replaced"
-  in
+  in *)
   ()
 
 let command = cmd run

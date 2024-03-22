@@ -15,25 +15,58 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type t = { passwords : Password.t list } [@@deriving yojson]
+module Inner = struct
+  type t = { passwords : Password.t list } [@@deriving yojson]
+end
+
+module Passwords = Set.Make(struct
+    type t = Password.t
+
+    let compare lhs rhs = 
+      let open Password in
+      let compare_website lhs rhs = String.compare lhs.website rhs.website in
+      let compare_mail lhs rhs = Option.compare String.compare lhs.mail rhs.mail in
+      let compare_user lhs rhs = Option.compare String.compare lhs.username rhs.username in
+      Util.Misc.compares [compare_website; compare_mail; compare_user] lhs rhs
+  end)
+
+type t = { passwords_set : Passwords.t }
+
 type change_status = CsAdded | CsChanged
 
-let empty = { passwords = [] }
-let to_data manager = Yojson.Safe.to_string @@ to_yojson manager
+
+let to_inner t = 
+  let passwords = List.of_seq @@ Passwords.to_seq t.passwords_set in 
+  Inner.{passwords}
+
+let of_inner inner = 
+  let passwords_set = Passwords.of_list inner.Inner.passwords in
+  {passwords_set}
+
+
+let empty = { passwords_set = Passwords.empty }
+
+let elements manager = Passwords.elements manager.passwords_set
+
+let to_data manager = Yojson.Safe.to_string @@ Inner.to_yojson @@ to_inner manager
+
+let to_file path  manager = 
+  Yojson.Safe.to_file path @@ Inner.to_yojson @@ to_inner manager
+
 
 let of_json_file file =
   let json = Yojson.Safe.from_file file in
-  match of_yojson json with
+  match Inner.of_yojson json with
   | Ok e ->
-      e
+    of_inner e
   | Error e ->
       raise @@ Error.import_file_wrong_formatted e
 
 let of_json_string string =
   let json = Yojson.Safe.from_string string in
-  match of_yojson json with
+  match Inner.of_yojson json with
   | Ok e ->
-      e
+    of_inner e
   | Error _ ->
       raise @@ Error.password_file_wrong_formatted
 
@@ -120,14 +153,15 @@ let create_password website username mail password =
 (**
     [add password manager] adds [password] to [manager]
 *)
-let add password manager = { passwords = password :: manager.passwords }
+let add password manager = 
+  { passwords_set = Passwords.add password manager.passwords_set }
 
 (**
     [(<<)] is the same as [add] with the arguments reversed
 *)
 let ( << ) manager password = add password manager
 
-let replace_or_add ~replace password manager =
+(* let replace_or_add ~replace password manager =
   let manager =
     match replace with
     | true ->
@@ -143,25 +177,25 @@ let replace_or_add ~replace password manager =
                   else
                     (false, elt :: passwords)
             )
-            (false, []) manager.passwords
+            (false, []) manager.Inner.passwords
         in
         let manager =
           match find with
           | true ->
-              (CsChanged, { passwords })
+              (CsChanged, Inner.{ passwords })
           | false ->
-              (CsAdded, { passwords = password :: passwords })
+              (CsAdded, Inner.{ passwords = password :: passwords })
         in
         manager
     | false ->
         (CsAdded, manager << password)
   in
-  manager
+  manager *)
 
-let length manager = List.length manager.passwords
-let map f manager = { passwords = List.map f manager.passwords }
-let iter f manager = List.iter f manager.passwords
-let fold_left f default manager = List.fold_left f default manager.passwords
+let length manager = Passwords.cardinal manager.passwords_set
+let map f manager = { passwords_set = Passwords.map f manager.passwords_set }
+let iter f manager = Passwords.iter f manager.passwords_set
+let fold f default manager = Passwords.fold f manager.passwords_set default
 
 (**
     [filter website manager] removes passwords in [manager] with the website [website]
@@ -169,13 +203,9 @@ let fold_left f default manager = List.fold_left f default manager.passwords
 *)
 let filter website manager =
   let base = length manager in
-  let new_manager =
-    {
-      passwords =
-        List.filter
-          (fun password -> password.Password.website <> website)
-          manager.passwords;
-    }
+  let new_manager = 
+    let passwords_set = Passwords.filter (fun password -> password.Password.website <> website) manager.passwords_set in
+    {passwords_set}
   in
   let new_length = length new_manager in
   if base = new_length then
@@ -187,12 +217,8 @@ let filter website manager =
     [filter_rexp website manager] filters [manager] with the website matching the regex [website]
 *)
 let filter_rexp website manager =
-  let passwords =
-    List.filter
-      (fun password -> Str.string_match website password.Password.website 0)
-      manager.passwords
-  in
-  { passwords }
+  let passwords_set = Passwords.filter (fun password -> Str.string_match website password.Password.website 0) manager.passwords_set in
+  { passwords_set }
 
 let hide_password manager = map Password.hide manager
 
@@ -202,8 +228,8 @@ let hide_password manager = map Password.hide manager
 let website_max_length manager =
   let str_webitse = "website" in
   let len_website = String.length str_webitse in
-  fold_left
-    (fun len password -> max len @@ String.length @@ Password.website password)
+  fold
+    (fun password len -> max len @@ String.length @@ Password.website password)
     len_website manager
 
 (**
@@ -212,8 +238,8 @@ let website_max_length manager =
 let password_max_length manager =
   let str = "paswword" in
   let len_website = String.length str in
-  fold_left
-    (fun len password -> max len @@ String.length @@ Password.password password)
+  fold
+    (fun password len -> max len @@ String.length @@ Password.password password)
     len_website manager
 
 (**
@@ -222,8 +248,8 @@ let password_max_length manager =
 let username_max_length manager =
   let str = "username" in
   let len_website = String.length str in
-  fold_left
-    (fun len password ->
+  fold
+    (fun password len ->
       max len @@ String.length
       @@ Option.value ~default:String.empty
       @@ Password.username password
@@ -236,8 +262,8 @@ let username_max_length manager =
 let mail_max_length manager =
   let str = "mail" in
   let len_website = String.length str in
-  fold_left
-    (fun len password ->
+  fold
+    (fun password len ->
       max len @@ String.length
       @@ Option.value ~default:String.empty
       @@ Password.mail password
@@ -302,7 +328,7 @@ let repr_lines ?(show_password = false) manager =
       line_description ~len_website ~len_username ~len_mail ~len_password
         password
     )
-    manager.passwords
+    @@ (to_inner manager).passwords
 
 let restrict_size dimension offsets =
   let v_offset, h_offset = offsets in
@@ -329,8 +355,8 @@ let rec loop ?old_winsize ?info dim input lines =
         | false ->
             ()
       in
-      let () =
-        match input v_offset h_offset with
+      
+      begin  match input v_offset h_offset with
         | None ->
             ()
         | Some t ->
@@ -338,8 +364,8 @@ let rec loop ?old_winsize ?info dim input lines =
             let r = not (new_v_offset = v_offset && new_h_offset = h_offset) in
             let info = (r, new_v_offset, new_h_offset) in
             loop ~old_winsize:winsize ~info dim input lines
-      in
-      ()
+        end
+
 
 let finput old_v_offset old_h_offset =
   let bytes = Bytes.create 1 in
@@ -363,8 +389,8 @@ let display ?(show_password = false) manager =
   let len = display_line_width manager in
   let vertical_line = Util.Ustring.line ~first:'|' ~last:'|' len '-' in
   let lines =
-    List.cons vertical_line @@ List.flatten
-    @@ List.map (fun l -> [ vertical_line; l ]) lines
+    List.cons vertical_line @@ List.concat_map
+    (fun l -> [ vertical_line; l ]) lines
   in
   let lines = List.append lines [ vertical_line ] in
   let dim = (List.length lines, len) in

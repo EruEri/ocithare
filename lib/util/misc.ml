@@ -15,7 +15,7 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module FileSys = FileSys
-module Io = Io
-module Ustring = Ustring
-module Misc = Misc
+let rec compares compare lhs rhs = match compare with
+  | [] -> Stdlib.compare lhs rhs
+  | cmp::[] -> cmp lhs rhs
+  | cmp :: q -> match cmp lhs rhs with 0 -> compares q lhs rhs | n -> n
