@@ -122,32 +122,36 @@ let decrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file)
   t
 
 let save_state ?(encrypt_key = false) master_password manager =
-  let time = Unix.gmtime (Unix.time ()) in
-  let random_name =
-    Password.Generate.create ~number:true ~uppercase:true ~lowercase:true
-      ~symbole:false 8
-  in
-  let name =
-    Printf.sprintf "%s %s %02u-%02u-%02u %02u-%02u-%02u" Config.cithare_name
-      random_name (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
-      time.tm_hour time.tm_min time.tm_sec
-  in
-  let path = Filename.concat Config.cithare_state_dir name in
-  let () =
-    match
-      Util.FileSys.mkfilep Config.xdg_state [ Config.cithare_name ] name
-    with
-    | Error path ->
-        let () = Error.emit_cannot_save_state path in
-        ()
-    | Ok () -> (
-        try encrypt ~encrypt_key ~where:path master_password manager
-        with _ ->
-          let () = Error.emit_cannot_save_state path in
-          ()
-      )
-  in
-  ()
+  match Config.cithare_save_state () with
+  | false ->
+      ()
+  | true ->
+      let time = Unix.gmtime (Unix.time ()) in
+      let random_name =
+        Password.Generate.create ~number:true ~uppercase:true ~lowercase:true
+          ~symbole:false 8
+      in
+      let name =
+        Printf.sprintf "%s %s %02u-%02u-%02u %02u-%02u-%02u" Config.cithare_name
+          random_name (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
+          time.tm_hour time.tm_min time.tm_sec
+      in
+      let path = Filename.concat Config.cithare_state_dir name in
+      let () =
+        match
+          Util.FileSys.mkfilep Config.xdg_state [ Config.cithare_name ] name
+        with
+        | Error path ->
+            let () = Error.emit_cannot_save_state path in
+            ()
+        | Ok () -> (
+            try encrypt ~encrypt_key ~where:path master_password manager
+            with _ ->
+              let () = Error.emit_cannot_save_state path in
+              ()
+          )
+      in
+      ()
 
 let create_password website username mail password =
   Password.create website username mail password
@@ -163,38 +167,11 @@ let add password manager =
 *)
 let ( << ) manager password = add password manager
 
-(* let replace_or_add ~replace password manager =
-   let manager =
-     match replace with
-     | true ->
-         let find, passwords =
-           List.fold_left
-             (fun (find, passwords) (elt : Password.t) ->
-               match find with
-               | true ->
-                   (find, elt :: passwords)
-               | false ->
-                   if elt.website = password.Password.website then
-                     (true, Password.replace elt password :: passwords)
-                   else
-                     (false, elt :: passwords)
-             )
-             (false, []) manager.Inner.passwords
-         in
-         let manager =
-           match find with
-           | true ->
-               (CsChanged, Inner.{ passwords })
-           | false ->
-               (CsAdded, Inner.{ passwords = password :: passwords })
-         in
-         manager
-     | false ->
-         (CsAdded, manager << password)
-   in
-   manager *)
+let count manager = Passwords.cardinal manager.passwords_set
 
-let length manager = Passwords.cardinal manager.passwords_set
+let diff lhs rhs =
+  let passwords_set = Passwords.diff lhs.passwords_set rhs.passwords_set in
+  { passwords_set }
 
 let map f manager =
   let passwords_set = Passwords.map f manager.passwords_set in
@@ -299,37 +276,6 @@ let matches ?(negate = false) ?mail ?username ~regex website manager =
   else
     { passwords_set }
 
-(* (**
-       [filter website manager] removes passwords in [manager] with the website [website]
-       if no password are removed in [manager], [manager] is physical equal to [manager]
-   *)
-   let filter website manager =
-     let base = length manager in
-     let new_manager =
-       let passwords_set =
-         Passwords.filter
-           (fun password -> password.Password.website <> website)
-           manager.passwords_set
-       in
-       { passwords_set }
-     in
-     let new_length = length new_manager in
-     if base = new_length then
-       (0, manager)
-     else
-       (base - new_length, new_manager)
-
-   (**
-       [filter_rexp website manager] filters [manager] with the website matching the regex [website]
-   *)
-   let filter_rexp website manager =
-     let passwords_set =
-       Passwords.filter
-         (fun password -> Str.string_match website password.Password.website 0)
-         manager.passwords_set
-     in
-     { passwords_set } *)
-
 let hide_password manager = map Password.hide manager
 
 (**
@@ -387,6 +333,14 @@ let display_line_width manager =
   let p = password_max_length manager in
   let spliter_count = 5 in
   w + u + m + p + spliter_count
+
+let error_format password =
+  let truncate = Util.Ustring.truncate 20 in
+  let str_none = "None" in
+  Printf.sprintf "%s, %s, %s"
+    (truncate password.Password.website)
+    (Option.fold ~none:str_none ~some:truncate password.username)
+    (Option.fold ~none:str_none ~some:truncate password.mail)
 
 let line_description ~len_website ~len_username ~len_mail ~len_password password
     =

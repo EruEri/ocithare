@@ -78,26 +78,31 @@ let validate t =
   | _ ->
       ()
 
+let validate_delete ~default_message ~error_message ~empty_line_message =
+  let module P = Libcithare.Input.Prompt in
+  let delete =
+    Libcithare.Input.validate_input ~default_message ~error_message
+      ~empty_line_message
+  in
+  match delete with
+  | false ->
+      raise @@ Libcithare.Error.delete_password_cancel
+  | true ->
+      ()
+
 let run t =
   let { all; website; username; mail } = t in
   let () = validate t in
   let master_password = Libcithare.Input.ask_password_encrypted () in
   let manager = Libcithare.Manager.decrypt master_password in
-  let base_len = Libcithare.Manager.length manager in
+  let base_len = Libcithare.Manager.count manager in
   let diff =
     match all with
     | true ->
         let module P = Libcithare.Input.Prompt in
-        let delete =
-          Libcithare.Input.validate_input ~default_message:P.delete_password
-            ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
-        in
         let () =
-          match delete with
-          | false ->
-              raise @@ Libcithare.Error.delete_password_cancel
-          | true ->
-              ()
+          validate_delete ~default_message:P.delete_password
+            ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
         in
         let manager = Libcithare.Manager.empty in
         let () = Libcithare.Manager.encrypt master_password manager in
@@ -118,10 +123,34 @@ let run t =
           | true ->
               0
           | false ->
+              let changes =
+                Libcithare.Manager.(count manager - count manager_deleted)
+              in
+              let changes =
+                match changes with
+                | changes when changes <= 1 ->
+                    changes
+                | changes ->
+                    let module P = Libcithare.Input.Prompt in
+                    let deleted =
+                      Libcithare.Manager.elements
+                      @@ Libcithare.Manager.diff manager manager_deleted
+                    in
+                    let message_fmt =
+                      List.map Libcithare.Manager.error_format deleted
+                    in
+                    let () =
+                      validate_delete
+                        ~default_message:(P.delete_password_list message_fmt)
+                        ~error_message:P.wrong_choice
+                        ~empty_line_message:P.empty_choice
+                    in
+                    changes
+              in
               let () =
                 Libcithare.Manager.encrypt master_password manager_deleted
               in
-              Libcithare.Manager.(length manager - length manager_deleted)
+              changes
         in
         change
   in

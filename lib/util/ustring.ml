@@ -26,3 +26,11 @@ let line ~first ~last length s =
     | _ ->
         s
     )
+
+let truncate n s =
+  let length = String.length s in
+  if length < n then
+    s
+  else
+    let subs = String.sub s 0 n in
+    Printf.sprintf "%s..." subs
