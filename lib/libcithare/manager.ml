@@ -101,7 +101,8 @@ let encrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file)
     [decrypt ?encrypt_key password] decrypts the manager with [password] and stored at [Config.cithare_password_file]
     if [encrypt_key], [password] is encrypted with [aes256]
 *)
-let decrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file) password =
+let decrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file)
+    password =
   let key =
     match encrypt_key with
     | true ->
@@ -110,9 +111,7 @@ let decrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file) passw
         password
   in
   let t =
-    match
-      Crypto.decrpty_file ~key ~iv:Crypto.default_iv where
-    with
+    match Crypto.decrpty_file ~key ~iv:Crypto.default_iv where with
     | Error e ->
         raise e
     | Ok None ->
@@ -196,9 +195,64 @@ let ( << ) manager password = add password manager
    manager *)
 
 let length manager = Passwords.cardinal manager.passwords_set
-let map f manager = { passwords_set = Passwords.map f manager.passwords_set }
+
+let map f manager =
+  let passwords_set = Passwords.map f manager.passwords_set in
+  if manager.passwords_set == passwords_set then
+    manager
+  else
+    { passwords_set }
+
 let iter f manager = Passwords.iter f manager.passwords_set
-let fold f default manager = Passwords.fold f manager.passwords_set default
+
+let fold f default manager =
+  Passwords.fold (fun elt acc -> f acc elt) manager.passwords_set default
+
+let mem password manager = Passwords.mem password manager.passwords_set
+
+let insert ?mail ?username ~replace (password : Password.t) manager =
+  match replace with
+  | true ->
+      let is_password_replacement (new_password : Password.t)
+          (old_password : Password.t) =
+        let are_field_matched =
+          match (mail, username) with
+          | None, None ->
+              true
+          | Some _, None ->
+              Option.equal String.equal new_password.mail old_password.mail
+          | None, Some _ ->
+              Option.equal String.equal new_password.username
+                old_password.username
+          | Some _, Some _ ->
+              Option.equal String.equal new_password.mail old_password.mail
+              && Option.equal String.equal new_password.username
+                   old_password.username
+        in
+        new_password.Password.website = old_password.Password.website
+        && are_field_matched
+      in
+      let manager_mapped =
+        map
+          (fun p ->
+            if is_password_replacement password p then
+              password
+            else
+              p
+          )
+          manager
+      in
+      if manager_mapped == manager then
+        (* No element were changed (ie. replaced), so we add the password  *)
+        (Some CsAdded, manager << password)
+      else
+        (Some CsChanged, manager_mapped)
+  | false ->
+      if mem password manager then
+        (None, manager)
+      else
+        let manager = manager << password in
+        (Some CsAdded, manager)
 
 let password_match ~regex ?mail ?username website (password : Password.t) =
   let string_match r to_match =
@@ -224,44 +278,57 @@ let password_match ~regex ?mail ?username website (password : Password.t) =
   && mail =?? password.mail
   && username =?? password.username
 
-let matches ~regex ?mail ?username website manager =
-  let passwords_set =
-    Passwords.filter
-      (password_match ~regex ?mail ?username website)
-      manager.passwords_set
-  in
-  { passwords_set }
-
 (**
-    [filter website manager] removes passwords in [manager] with the website [website]
-    if no password are removed in [manager], [manager] is physical equal to [manager]
+  [matches ?(negate) ?mail ?username ~regex website manager] matches passwords within [manager] with
+  [website]. [mail] and [username] allows to narrow down the matchings by also matching the mail and username
+  field in password.
+  - If [regex] is provided, [mail], [username] and [website] are treaded as regex.
+  - If [negate] is provided, the returns all the passwords that `doesn't match` with [mail], [username] and [website].
+  - If all the elements are matched, manager is unchanged (the result of the function is then physically equal to [manager])
 *)
-let filter website manager =
-  let base = length manager in
-  let new_manager =
-    let passwords_set =
-      Passwords.filter
-        (fun password -> password.Password.website <> website)
-        manager.passwords_set
-    in
-    { passwords_set }
+let matches ?(negate = false) ?mail ?username ~regex website manager =
+  let f =
+    if negate then
+      Fun.negate (password_match ~regex ?mail ?username website)
+    else
+      password_match ~regex ?mail ?username website
   in
-  let new_length = length new_manager in
-  if base = new_length then
-    (0, manager)
+  let passwords_set = Passwords.filter f manager.passwords_set in
+  if manager.passwords_set == passwords_set then
+    manager
   else
-    (base - new_length, new_manager)
+    { passwords_set }
 
-(**
-    [filter_rexp website manager] filters [manager] with the website matching the regex [website]
-*)
-let filter_rexp website manager =
-  let passwords_set =
-    Passwords.filter
-      (fun password -> Str.string_match website password.Password.website 0)
-      manager.passwords_set
-  in
-  { passwords_set }
+(* (**
+       [filter website manager] removes passwords in [manager] with the website [website]
+       if no password are removed in [manager], [manager] is physical equal to [manager]
+   *)
+   let filter website manager =
+     let base = length manager in
+     let new_manager =
+       let passwords_set =
+         Passwords.filter
+           (fun password -> password.Password.website <> website)
+           manager.passwords_set
+       in
+       { passwords_set }
+     in
+     let new_length = length new_manager in
+     if base = new_length then
+       (0, manager)
+     else
+       (base - new_length, new_manager)
+
+   (**
+       [filter_rexp website manager] filters [manager] with the website matching the regex [website]
+   *)
+   let filter_rexp website manager =
+     let passwords_set =
+       Passwords.filter
+         (fun password -> Str.string_match website password.Password.website 0)
+         manager.passwords_set
+     in
+     { passwords_set } *)
 
 let hide_password manager = map Password.hide manager
 
@@ -272,7 +339,7 @@ let website_max_length manager =
   let str_webitse = "website" in
   let len_website = String.length str_webitse in
   fold
-    (fun password len -> max len @@ String.length @@ Password.website password)
+    (fun len password -> max len @@ String.length @@ Password.website password)
     len_website manager
 
 (**
@@ -282,7 +349,7 @@ let password_max_length manager =
   let str = "paswword" in
   let len_website = String.length str in
   fold
-    (fun password len -> max len @@ String.length @@ Password.password password)
+    (fun len password -> max len @@ String.length @@ Password.password password)
     len_website manager
 
 (**
@@ -292,7 +359,7 @@ let username_max_length manager =
   let str = "username" in
   let len_website = String.length str in
   fold
-    (fun password len ->
+    (fun len password ->
       max len @@ String.length
       @@ Option.value ~default:String.empty
       @@ Password.username password
@@ -306,7 +373,7 @@ let mail_max_length manager =
   let str = "mail" in
   let len_website = String.length str in
   fold
-    (fun password len ->
+    (fun len password ->
       max len @@ String.length
       @@ Option.value ~default:String.empty
       @@ Password.mail password

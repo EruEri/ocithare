@@ -19,7 +19,12 @@ open Cmdliner
 
 let name = "delete"
 
-type t = { all : bool; website : string option }
+type t = {
+  all : bool;
+  website : string option;
+  username : string option;
+  mail : string option;
+}
 
 let term_all =
   Arg.(value & flag & info [ "a"; "all" ] ~doc:"Delete all passwords")
@@ -28,13 +33,32 @@ let term_website =
   Arg.(
     value
     & opt (some string) None
-    & info [ "w"; "website" ] ~docv:"WEBSITE"
+    & info [ "w"; "website" ] ~docv:"<WEBSITE>"
         ~doc:"Delete passwords matching $(docv)"
   )
 
+let term_username =
+  Arg.(
+    value
+    & opt (some string) None
+    & info
+        [ "n"; "name"; "username" ]
+        ~docv:"<NAME>" ~doc:"Delete password by also matching $(docv)"
+  )
+
+let term_mail =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "m"; "mail" ] ~docv:"<MAIL>"
+        ~doc:"Delete password by also matching $(docv)"
+  )
+
 let term_cmd run =
-  let combine all website = run { all; website } in
-  Term.(const combine $ term_all $ term_website)
+  let combine all website username mail =
+    run { all; website; username; mail }
+  in
+  Term.(const combine $ term_all $ term_website $ term_username $ term_mail)
 
 let doc = "Delete passwords to $(mname)"
 let man = [ `S Manpage.s_description; `P doc ]
@@ -44,7 +68,7 @@ let cmd run =
   Cmd.v info (term_cmd run)
 
 let validate t =
-  let { all; website } = t in
+  let { all; website; username = _; mail = _ } = t in
   let () = Libcithare.Manager.check_initialized () in
   match website with
   | None when not all ->
@@ -55,7 +79,7 @@ let validate t =
       ()
 
 let run t =
-  let { all; website } = t in
+  let { all; website; username; mail } = t in
   let () = validate t in
   let master_password = Libcithare.Input.ask_password_encrypted () in
   let manager = Libcithare.Manager.decrypt master_password in
@@ -79,21 +103,25 @@ let run t =
         let () = Libcithare.Manager.encrypt master_password manager in
         base_len
     | false ->
-        let change, m =
-          website
-          |> Option.map (fun website ->
-                 Libcithare.Manager.filter website manager
-             )
-          |> Option.value ~default:(0, manager)
+        let manager_deleted =
+          Option.value ~default:manager
+          @@ Option.map
+               (fun website ->
+                 Libcithare.Manager.matches ~negate:true ?mail ?username
+                   ~regex:false website manager
+               )
+               website
         in
         (* Can use physical equal since filter returns physical manager if no diff*)
-        let () =
-          match m == manager with
+        let change =
+          match manager_deleted == manager with
           | true ->
-              ()
+              0
           | false ->
-              let () = Libcithare.Manager.encrypt master_password m in
-              ()
+              let () =
+                Libcithare.Manager.encrypt master_password manager_deleted
+              in
+              Libcithare.Manager.(length manager - length manager_deleted)
         in
         change
   in
