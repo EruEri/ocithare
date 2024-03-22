@@ -29,11 +29,16 @@ complete -c cithare -n "__fish_seen_subcommand_from generate-password or __fish_
 # cithare delete
 complete -c cithare -n "__fish_seen_subcommand_from delete" -f -r -s w -l website -d "Delete passwords matching <website>"
 complete -c cithare -n "__fish_seen_subcommand_from delete" -f -r -s a -l all -d "Delete all passwords"
+complete -c cithare -n "__fish_seen_subcommand_from delete" -f -r -s n -l username -d "Delete password by also matching <name>"
+complete -c cithare -n "__fish_seen_subcommand_from delete" -f -r -s m -l mail -d "Delete password by also matching <mail>"
 
 # cithare export
 complete -c cithare -n "__fish_seen_subcommand_from export" -r -s o -d "Export passwords as json"
-complete -c cithare -n "__fish_seen_subcommand_from export" -f -s r -l regex -d "Find the website by matching its name"
-complete -c cithare -n "__fish_seen_subcommand_from export" -f -r -s w -l website -d "Specify the site"
+complete -c cithare -n "__fish_seen_subcommand_from export" -f -s r -l regex -d "Treat each field as a regex string"
+complete -c cithare -n "__fish_seen_subcommand_from export" -f -r -s w -l website -d "Match the site"
+complete -c cithare -n "__fish_seen_subcommand_from export" -f -r -s m -l mail -d "Match the mail"
+complete -c cithare -n "__fish_seen_subcommand_from export" -f -r -s n -l username -d "Match the username"
+
 
 switch (uname)
 case Darwin

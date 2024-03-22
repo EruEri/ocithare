@@ -151,15 +151,18 @@ let run t =
     Libcithare.Manager.create_password website username mail password
   in
   let status, manager =
-    Libcithare.Manager.replace_or_add ~replace new_password manager
+    Libcithare.Manager.insert ?mail ?username ~replace new_password manager
   in
   let () = Libcithare.Manager.encrypt master_password manager in
   let () =
     match status with
-    | CsAdded ->
+    | Some CsAdded ->
         print_endline "Password added"
-    | CsChanged ->
+    | Some CsChanged ->
         print_endline "Password replaced"
+    | None ->
+        Libcithare.Error.emit_already_existing_password
+          ~exit:Libcithare.Error.Code.cithare_warning_code ()
   in
   ()
 

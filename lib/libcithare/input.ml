@@ -24,8 +24,13 @@ module Prompt = struct
   let password_satifying = "Is password satisfying ? [y/n]"
   let wrong_choice = "Wrong Input!\nSelect between [y/n]"
   let empty_choice = "No Input!\nPlease select a reponse"
-  let try_again = "Do you want to try again? [y/n]"
-  let delete_password = "Do you want to delete all your password? [y/N]"
+  let try_again = "Do you want to try again ? [y/n]"
+  let delete_password = "Do you want to delete all your password? [y/n]"
+
+  let delete_password_list s =
+    Printf.sprintf "Do you want to delete the following passwords ? [y/n]\n%s"
+    @@ String.concat "\n"
+    @@ List.map (Printf.sprintf "  - %s") s
 end
 
 (**

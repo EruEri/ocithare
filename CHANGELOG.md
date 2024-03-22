@@ -1,3 +1,6 @@
+## [Unreleased]
+- [cithare-{delete,export}: Add name and mail to narrow down the matching](https://github.com/EruEri/ocithare/pull/6)
+
 ## [0.10.1]
 - [cithare-add: Add length as a trigger for automic password generation](https://github.com/EruEri/ocithare/pull/4)
 
