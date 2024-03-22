@@ -70,7 +70,7 @@ let term_xclip =
 
 let term_cmd = CexportCommon.term_cmd validate fpaste
 let doc = CexportCommon.doc
-let man = [ `S Manpage.s_description; `P "Export passwords" ]
+let man = CexportCommon.man
 
 let cmd () =
   let info = Cmd.info ~doc ~man name in

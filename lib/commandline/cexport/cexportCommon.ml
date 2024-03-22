@@ -61,6 +61,33 @@ class export_t ?mail ?username validate fpaste website regex paste output =
 let name = "export"
 let doc = "Export passwords"
 
+let man =
+  [
+    `S Manpage.s_description;
+    `P
+      "$(iname) retrieves passwords from $(mname), either the password for one \
+       entry or export all the passwords stored in a json formatted file";
+    `P "$(b,-m) and $(b,-n) options further narrows down the matching.";
+    `Noblank;
+    `P
+      "Narrow down the matching is mandatory if you try to retrieve a password \
+       from an entry where the website appears more than once.";
+    `P
+      "Regex option (ie. $(b,-r)) if provided, treats individually \
+       $(b,website), $(b,name) and $(b,mail) as a regex string";
+    `S Manpage.s_examples;
+    `I
+      ( "Export all the password into a file named passwords.json",
+        "$(iname) -o passwords.json"
+      );
+    `I ("Export password for the website sitea", "$(iname) -w sitea");
+    `I
+      ( "Export password for the a website matching $(b,sit) and a username \
+         matching $(b,user)",
+        "$(iname) -rw 'sit*' -u 'user*' "
+      );
+  ]
+
 let term_website =
   Arg.(
     value

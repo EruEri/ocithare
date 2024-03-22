@@ -50,7 +50,10 @@ module Repr = struct
     | NoMatchingPassword ->
         "No matching password"
     | TooManyMatchingPasswords website ->
-        Printf.sprintf "Conflicting matching passwords:\n\t- %s"
+        Printf.sprintf
+          "Conflicting matching passwords:\n\
+           \t- %s\n\
+          \  Maybe try to narrow the search with -m and -n"
         @@ String.concat "\n\t- " website
     | CannotSaveState p ->
         Printf.sprintf "Can’t save state at %s" p
