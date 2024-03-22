@@ -264,12 +264,8 @@ let password_match ~regex ?mail ?username website (password : Password.t) =
   - If all the elements are matched, manager is unchanged (the result of the function is then physically equal to [manager])
 *)
 let matches ?(negate = false) ?mail ?username ~regex website manager =
-  let f =
-    if negate then
-      Fun.negate (password_match ~regex ?mail ?username website)
-    else
-      password_match ~regex ?mail ?username website
-  in
+  let transformer = if negate then Fun.negate else Fun.id in
+  let f = transformer @@ password_match ~regex ?mail ?username website in
   let passwords_set = Passwords.filter f manager.passwords_set in
   if manager.passwords_set == passwords_set then
     manager
