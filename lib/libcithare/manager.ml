@@ -197,6 +197,30 @@ let map f manager = { passwords_set = Passwords.map f manager.passwords_set }
 let iter f manager = Passwords.iter f manager.passwords_set
 let fold f default manager = Passwords.fold f manager.passwords_set default
 
+
+
+let password_match ~regex ?mail ?username website (password: Password.t) =
+  let string_match = fun r to_match ->  match regex with
+    | true -> String.equal r to_match
+    | false -> 
+      let str_regex = Str.regexp r in
+      Str.string_match str_regex to_match 0
+  in
+  let ( =? ) = string_match in
+  let optional_match = fun r to_match -> match (r, to_match) with
+    | None, (None | Some _) -> true
+    | Some _, None -> false
+    | Some lhs, Some rhs -> lhs =? rhs
+  in
+  let ( =?? ) = optional_match in
+  (password.website =? website) && (password.mail =?? mail) && (password.username =?? username)
+
+let matches ~regex ?mail ?username website manager = 
+  let passwords_set = Passwords.filter (
+    password_match ~regex ?mail ?username website
+  ) manager.passwords_set in
+  {passwords_set}
+
 (**
     [filter website manager] removes passwords in [manager] with the website [website]
     if no password are removed in [manager], [manager] is physical equal to [manager]

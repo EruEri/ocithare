@@ -17,48 +17,7 @@
 
 open Cmdliner
 
-let name = "export"
-
-let term_website =
-  Arg.(
-    value
-    & opt (some string) None
-    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Specify the site"
-  )
-
-let term_regex =
-  Arg.(
-    value & flag
-    & info [ "r"; "regex" ] ~doc:"Find the website by matching its name"
-  )
-
-let term_paste =
-  Arg.(
-    value & flag
-    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
-  )
-
-let term_output =
-  Arg.(
-    value
-    & opt (some string) None
-    & info [ "o" ] ~docv:"OUTFILE" ~doc:"Export passwords as json into $(docv)"
-  )
-
-let term_display_time =
-  Arg.(
-    value
-    & opt (some int) None
-    & info [ "d"; "display-time" ] ~docv:"DURATION"
-        ~doc:"Show password to stdout for $(docv)"
-  )
-
-let term_show_password =
-  Arg.(value & flag & info [ "show-password" ] ~doc:"Show plain passwords")
-
-let doc = "Export passwords"
-
-class export_t validate fpaste website regex paste output =
+class export_t ?mail ?username validate fpaste website regex paste output =
   object (self)
     method regex = regex
     method paste = paste
@@ -68,14 +27,7 @@ class export_t validate fpaste website regex paste output =
     method process_website
         : regex:bool -> paste:bool -> Libcithare.Manager.t -> string -> unit =
       fun ~regex ~paste manager website ->
-        let r =
-          match regex with
-          | true ->
-              Str.regexp website
-          | false ->
-              Str.regexp_string website
-        in
-        let manager = Libcithare.Manager.filter_rexp r manager in
+        let manager = Libcithare.Manager.matches ~regex ?mail ?username website manager in
         let passwords = Libcithare.Manager.elements manager in
         let () =
           match passwords with
@@ -107,3 +59,58 @@ class export_t validate fpaste website regex paste output =
         let () = Option.iter (self#export manager) output in
         ()
   end
+
+
+let name = "export"
+
+let doc = "Export passwords"
+
+let term_website =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Specify the site"
+  )
+
+let term_regex =
+  Arg.(
+    value & flag
+    & info [ "r"; "regex" ] ~doc:"Find the website by matching its name"
+  )
+
+let term_paste =
+  Arg.(
+    value & flag
+    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
+  )
+
+let term_output =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "o" ] ~docv:"<OUTFILE>" ~doc:"Export passwords as json into $(docv)"
+  )
+
+  let term_name = 
+    Arg.(
+      value
+      & opt (some string) None
+      & info ["n"; "name"; "username"] ~docv:"<NAME>" ~doc:"Match the username"
+    )
+
+  let term_mail = 
+    Arg.(
+      value
+      & opt (some string) None
+      & info ["m"; "mail"] ~docv:"<MAIL>" ~doc:"Match the mail"
+    )
+
+
+  let term_cmd validate fpaste =
+    let combine mail username website regex paste output =
+      let export =
+        new export_t ?mail ?username validate fpaste website regex paste output
+      in
+      export#run ()
+    in
+    Term.(const combine $ term_mail $ term_name $ term_website $ term_regex $ term_paste $ term_output)

@@ -25,8 +25,8 @@ let term_website = CexportCommon.term_website
 let term_regex = CexportCommon.term_regex
 let term_paste = CexportCommon.term_paste
 let term_output = CexportCommon.term_output
-let term_display_time = CexportCommon.term_display_time
-let term_show_password = CexportCommon.term_show_password
+let term_name = CexportCommon.term_name
+let term_mail = CexportCommon.term_mail
 
 let validate t =
   let () = Libcithare.Manager.check_initialized () in
@@ -66,20 +66,13 @@ let fpaste ~regex ~paste password =
 
       ()
 
-let term_cmd () =
-  let combine website regex paste output =
-    let export =
-      new CexportCommon.export_t validate fpaste website regex paste output
-    in
-    export#run ()
-  in
-  Term.(const combine $ term_website $ term_regex $ term_paste $ term_output)
+let term_cmd = CexportCommon.term_cmd validate fpaste
 
 let doc = CexportCommon.doc
 let man = [ `S Manpage.s_description; `P "Export passwords" ]
 
 let cmd () =
   let info = Cmd.info ~doc ~man name in
-  Cmd.v info (term_cmd ())
+  Cmd.v info term_cmd 
 
 let command = cmd ()
