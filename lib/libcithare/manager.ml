@@ -19,46 +19,50 @@ module Inner = struct
   type t = { passwords : Password.t list } [@@deriving yojson]
 end
 
-module Passwords = Set.Make(struct
-    type t = Password.t
+module Passwords = Set.Make (struct
+  type t = Password.t
 
-    let compare lhs rhs = 
-      let open Password in
-      let compare_website lhs rhs = String.compare lhs.website rhs.website in
-      let compare_mail lhs rhs = Option.compare String.compare lhs.mail rhs.mail in
-      let compare_user lhs rhs = Option.compare String.compare lhs.username rhs.username in
-      Util.Misc.compares [compare_website; compare_mail; compare_user] lhs rhs
-  end)
+  let compare lhs rhs =
+    let open Password in
+    let compare_website lhs rhs = String.compare lhs.website rhs.website in
+    let compare_mail lhs rhs =
+      Option.compare String.compare lhs.mail rhs.mail
+    in
+    let compare_user lhs rhs =
+      Option.compare String.compare lhs.username rhs.username
+    in
+    Util.Misc.compares [ compare_website; compare_mail; compare_user ] lhs rhs
+end)
 
 type t = { passwords_set : Passwords.t }
-
 type change_status = CsAdded | CsChanged
 
+let to_inner t =
+  let passwords = List.of_seq @@ Passwords.to_seq t.passwords_set in
+  Inner.{ passwords }
 
-let to_inner t = 
-  let passwords = List.of_seq @@ Passwords.to_seq t.passwords_set in 
-  Inner.{passwords}
-
-let of_inner inner = 
+let of_inner inner =
   let passwords_set = Passwords.of_list inner.Inner.passwords in
-  {passwords_set}
-
+  { passwords_set }
 
 let empty = { passwords_set = Passwords.empty }
 
+(**
+  [elements manager] returns the list of passwords record stored in [manager]
+*)
 let elements manager = Passwords.elements manager.passwords_set
 
-let to_data manager = Yojson.Safe.to_string @@ Inner.to_yojson @@ to_inner manager
+let to_data manager =
+  Yojson.Safe.to_string @@ Inner.to_yojson @@ to_inner manager
 
-let to_file path  manager = 
+let to_file path manager =
   Yojson.Safe.to_file path @@ Inner.to_yojson @@ to_inner manager
-
 
 let of_json_file file =
   let json = Yojson.Safe.from_file file in
   match Inner.of_yojson json with
   | Ok e ->
-    of_inner e
+      of_inner e
   | Error e ->
       raise @@ Error.import_file_wrong_formatted e
 
@@ -66,7 +70,7 @@ let of_json_string string =
   let json = Yojson.Safe.from_string string in
   match Inner.of_yojson json with
   | Ok e ->
-    of_inner e
+      of_inner e
   | Error _ ->
       raise @@ Error.password_file_wrong_formatted
 
@@ -97,7 +101,7 @@ let encrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file)
     [decrypt ?encrypt_key password] decrypts the manager with [password] and stored at [Config.cithare_password_file]
     if [encrypt_key], [password] is encrypted with [aes256]
 *)
-let decrypt ?(encrypt_key = false) password =
+let decrypt ?(encrypt_key = false) ?(where = Config.cithare_password_file) password =
   let key =
     match encrypt_key with
     | true ->
@@ -107,8 +111,7 @@ let decrypt ?(encrypt_key = false) password =
   in
   let t =
     match
-      Crypto.decrpty_file ~key ~iv:Crypto.default_iv
-        Config.cithare_password_file
+      Crypto.decrpty_file ~key ~iv:Crypto.default_iv where
     with
     | Error e ->
         raise e
@@ -153,7 +156,7 @@ let create_password website username mail password =
 (**
     [add password manager] adds [password] to [manager]
 *)
-let add password manager = 
+let add password manager =
   { passwords_set = Passwords.add password manager.passwords_set }
 
 (**
@@ -162,64 +165,72 @@ let add password manager =
 let ( << ) manager password = add password manager
 
 (* let replace_or_add ~replace password manager =
-  let manager =
-    match replace with
-    | true ->
-        let find, passwords =
-          List.fold_left
-            (fun (find, passwords) (elt : Password.t) ->
-              match find with
-              | true ->
-                  (find, elt :: passwords)
-              | false ->
-                  if elt.website = password.Password.website then
-                    (true, Password.replace elt password :: passwords)
-                  else
-                    (false, elt :: passwords)
-            )
-            (false, []) manager.Inner.passwords
-        in
-        let manager =
-          match find with
-          | true ->
-              (CsChanged, Inner.{ passwords })
-          | false ->
-              (CsAdded, Inner.{ passwords = password :: passwords })
-        in
-        manager
-    | false ->
-        (CsAdded, manager << password)
-  in
-  manager *)
+   let manager =
+     match replace with
+     | true ->
+         let find, passwords =
+           List.fold_left
+             (fun (find, passwords) (elt : Password.t) ->
+               match find with
+               | true ->
+                   (find, elt :: passwords)
+               | false ->
+                   if elt.website = password.Password.website then
+                     (true, Password.replace elt password :: passwords)
+                   else
+                     (false, elt :: passwords)
+             )
+             (false, []) manager.Inner.passwords
+         in
+         let manager =
+           match find with
+           | true ->
+               (CsChanged, Inner.{ passwords })
+           | false ->
+               (CsAdded, Inner.{ passwords = password :: passwords })
+         in
+         manager
+     | false ->
+         (CsAdded, manager << password)
+   in
+   manager *)
 
 let length manager = Passwords.cardinal manager.passwords_set
 let map f manager = { passwords_set = Passwords.map f manager.passwords_set }
 let iter f manager = Passwords.iter f manager.passwords_set
 let fold f default manager = Passwords.fold f manager.passwords_set default
 
-
-
-let password_match ~regex ?mail ?username website (password: Password.t) =
-  let string_match = fun r to_match ->  match regex with
-    | true -> String.equal r to_match
-    | false -> 
-      let str_regex = Str.regexp r in
-      Str.string_match str_regex to_match 0
+let password_match ~regex ?mail ?username website (password : Password.t) =
+  let string_match r to_match =
+    match regex with
+    | false ->
+        String.equal r to_match
+    | true ->
+        let str_regex = Str.regexp r in
+        Str.string_match str_regex to_match 0
   in
   let ( =? ) = string_match in
-  let optional_match = fun r to_match -> match (r, to_match) with
-    | None, (None | Some _) -> true
-    | Some _, None -> false
-    | Some lhs, Some rhs -> lhs =? rhs
+  let optional_match r to_match =
+    match (r, to_match) with
+    | None, (None | Some _) ->
+        true
+    | Some _, None ->
+        false
+    | Some lhs, Some rhs ->
+        lhs =? rhs
   in
   let ( =?? ) = optional_match in
-  (password.website =? website) && (password.mail =?? mail) && (password.username =?? username)
+  website =? password.website
+  && mail =?? password.mail
+  && username =?? password.username
 
-let matches ~regex ?mail ?username website manager = 
-  let passwords_set = Passwords.filter (
-    password_match ~regex ?mail ?username website
-  ) manager.passwords_set in
-  {passwords_set}
+let matches ~regex ?mail ?username website manager =
+  let passwords_set =
+    Passwords.filter
+      (password_match ~regex ?mail ?username website)
+      manager.passwords_set
+  in
+  { passwords_set }
 
 (**
     [filter website manager] removes passwords in [manager] with the website [website]
@@ -227,9 +238,13 @@ let matches ~regex ?mail ?username website manager =
 *)
 let filter website manager =
   let base = length manager in
-  let new_manager = 
-    let passwords_set = Passwords.filter (fun password -> password.Password.website <> website) manager.passwords_set in
-    {passwords_set}
+  let new_manager =
+    let passwords_set =
+      Passwords.filter
+        (fun password -> password.Password.website <> website)
+        manager.passwords_set
+    in
+    { passwords_set }
   in
   let new_length = length new_manager in
   if base = new_length then
@@ -241,7 +256,11 @@ let filter website manager =
     [filter_rexp website manager] filters [manager] with the website matching the regex [website]
 *)
 let filter_rexp website manager =
-  let passwords_set = Passwords.filter (fun password -> Str.string_match website password.Password.website 0) manager.passwords_set in
+  let passwords_set =
+    Passwords.filter
+      (fun password -> Str.string_match website password.Password.website 0)
+      manager.passwords_set
+  in
   { passwords_set }
 
 let hide_password manager = map Password.hide manager
@@ -340,8 +359,7 @@ let repr_lines ?(show_password = false) manager =
   let len_username = username_max_length manager in
   let len_mail = mail_max_length manager in
   let len_password = password_max_length manager in
-  List.map
-    (fun password ->
+  List.map (fun password ->
       let password =
         match show_password with
         | true ->
@@ -351,8 +369,8 @@ let repr_lines ?(show_password = false) manager =
       in
       line_description ~len_website ~len_username ~len_mail ~len_password
         password
-    )
-    @@ (to_inner manager).passwords
+  )
+  @@ (to_inner manager).passwords
 
 let restrict_size dimension offsets =
   let v_offset, h_offset = offsets in
@@ -371,7 +389,7 @@ let rec loop ?old_winsize ?info dim input lines =
   match info with
   | None ->
       ()
-  | Some (r, v_offset, h_offset) ->
+  | Some (r, v_offset, h_offset) -> (
       let () =
         match r || did_change with
         | true ->
@@ -379,17 +397,16 @@ let rec loop ?old_winsize ?info dim input lines =
         | false ->
             ()
       in
-      
-      begin  match input v_offset h_offset with
-        | None ->
-            ()
-        | Some t ->
-            let new_v_offset, new_h_offset = restrict_size dim t in
-            let r = not (new_v_offset = v_offset && new_h_offset = h_offset) in
-            let info = (r, new_v_offset, new_h_offset) in
-            loop ~old_winsize:winsize ~info dim input lines
-        end
 
+      match input v_offset h_offset with
+      | None ->
+          ()
+      | Some t ->
+          let new_v_offset, new_h_offset = restrict_size dim t in
+          let r = not (new_v_offset = v_offset && new_h_offset = h_offset) in
+          let info = (r, new_v_offset, new_h_offset) in
+          loop ~old_winsize:winsize ~info dim input lines
+    )
 
 let finput old_v_offset old_h_offset =
   let bytes = Bytes.create 1 in
@@ -413,8 +430,8 @@ let display ?(show_password = false) manager =
   let len = display_line_width manager in
   let vertical_line = Util.Ustring.line ~first:'|' ~last:'|' len '-' in
   let lines =
-    List.cons vertical_line @@ List.concat_map
-    (fun l -> [ vertical_line; l ]) lines
+    List.cons vertical_line
+    @@ List.concat_map (fun l -> [ vertical_line; l ]) lines
   in
   let lines = List.append lines [ vertical_line ] in
   let dim = (List.length lines, len) in

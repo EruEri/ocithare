@@ -21,13 +21,6 @@ let name = CexportCommon.name
 
 type t = CexportCommon.export_t
 
-let term_website = CexportCommon.term_website
-let term_regex = CexportCommon.term_regex
-let term_paste = CexportCommon.term_paste
-let term_output = CexportCommon.term_output
-let term_name = CexportCommon.term_name
-let term_mail = CexportCommon.term_mail
-
 let validate t =
   let () = Libcithare.Manager.check_initialized () in
   let () =
@@ -41,7 +34,7 @@ let validate t =
   in
   ()
 
-let fpaste ~regex ~paste password =
+let fpaste ?mail ?username ~regex ~paste password =
   match paste with
   | false ->
       let () = print_endline password.Libcithare.Password.password in
@@ -59,6 +52,17 @@ let fpaste ~regex ~paste password =
                 ()
             in
             let () =
+              if Option.is_some mail then
+                Printf.printf "For : %s\n"
+                @@ Option.value ~default:String.empty password.mail
+            in
+            let () =
+              if Option.is_some username then
+                Printf.printf "For : %s\n"
+                @@ Option.value ~default:String.empty password.username
+            in
+
+            let () =
               Printf.printf "Password successfully written in pasteboard\n"
             in
             ()
@@ -67,12 +71,11 @@ let fpaste ~regex ~paste password =
       ()
 
 let term_cmd = CexportCommon.term_cmd validate fpaste
-
 let doc = CexportCommon.doc
 let man = [ `S Manpage.s_description; `P "Export passwords" ]
 
 let cmd () =
   let info = Cmd.info ~doc ~man name in
-  Cmd.v info term_cmd 
+  Cmd.v info term_cmd
 
 let command = cmd ()

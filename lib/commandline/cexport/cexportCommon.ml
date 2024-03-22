@@ -19,20 +19,20 @@ open Cmdliner
 
 class export_t ?mail ?username validate fpaste website regex paste output =
   object (self)
-    method regex = regex
     method paste = paste
     method website = website
-    method output = output
 
     method process_website
         : regex:bool -> paste:bool -> Libcithare.Manager.t -> string -> unit =
       fun ~regex ~paste manager website ->
-        let manager = Libcithare.Manager.matches ~regex ?mail ?username website manager in
+        let manager =
+          Libcithare.Manager.matches ~regex ?mail ?username website manager
+        in
         let passwords = Libcithare.Manager.elements manager in
         let () =
           match passwords with
           | password :: [] ->
-              fpaste ~regex ~paste password
+              fpaste ?mail ?username ~regex ~paste password
           | [] ->
               Libcithare.Error.emit_no_matching_password ()
           | _ :: _ as list ->
@@ -43,9 +43,7 @@ class export_t ?mail ?username validate fpaste website regex paste output =
 
     method export : Libcithare.Manager.t -> string -> unit =
       fun manager path ->
-        let () =
-          Libcithare.Manager.to_file path manager
-        in
+        let () = Libcithare.Manager.to_file path manager in
         ()
 
     method run : unit -> unit =
@@ -60,9 +58,7 @@ class export_t ?mail ?username validate fpaste website regex paste output =
         ()
   end
 
-
 let name = "export"
-
 let doc = "Export passwords"
 
 let term_website =
@@ -88,29 +84,32 @@ let term_output =
   Arg.(
     value
     & opt (some string) None
-    & info [ "o" ] ~docv:"<OUTFILE>" ~doc:"Export passwords as json into $(docv)"
+    & info [ "o" ] ~docv:"<OUTFILE>"
+        ~doc:"Export passwords as json into $(docv)"
   )
 
-  let term_name = 
-    Arg.(
-      value
-      & opt (some string) None
-      & info ["n"; "name"; "username"] ~docv:"<NAME>" ~doc:"Match the username"
-    )
+let term_name =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "n"; "name"; "username" ] ~docv:"<NAME>" ~doc:"Match the username"
+  )
 
-  let term_mail = 
-    Arg.(
-      value
-      & opt (some string) None
-      & info ["m"; "mail"] ~docv:"<MAIL>" ~doc:"Match the mail"
-    )
+let term_mail =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "m"; "mail" ] ~docv:"<MAIL>" ~doc:"Match the mail"
+  )
 
-
-  let term_cmd validate fpaste =
-    let combine mail username website regex paste output =
-      let export =
-        new export_t ?mail ?username validate fpaste website regex paste output
-      in
-      export#run ()
+let term_cmd validate fpaste =
+  let combine mail username website regex paste output =
+    let export =
+      new export_t ?mail ?username validate fpaste website regex paste output
     in
-    Term.(const combine $ term_mail $ term_name $ term_website $ term_regex $ term_paste $ term_output)
+    export#run ()
+  in
+  Term.(
+    const combine $ term_mail $ term_name $ term_website $ term_regex
+    $ term_paste $ term_output
+  )

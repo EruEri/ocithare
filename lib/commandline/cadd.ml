@@ -151,16 +151,16 @@ let run t =
     Libcithare.Manager.create_password website username mail password
   in
   (* let status, manager =
-    Libcithare.Manager.replace_or_add ~replace new_password manager
-  in
-  let () = Libcithare.Manager.encrypt master_password manager in
-  let () =
-    match status with
-    | CsAdded ->
-        print_endline "Password added"
-    | CsChanged ->
-        print_endline "Password replaced"
-  in *)
+       Libcithare.Manager.replace_or_add ~replace new_password manager
+     in
+     let () = Libcithare.Manager.encrypt master_password manager in
+     let () =
+       match status with
+       | CsAdded ->
+           print_endline "Password added"
+       | CsChanged ->
+           print_endline "Password replaced"
+     in *)
   ()
 
 let command = cmd run
