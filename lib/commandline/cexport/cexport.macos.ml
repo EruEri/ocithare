@@ -70,7 +70,13 @@ let fpaste ?mail ?username ~regex ~paste password =
 
       ()
 
-let term_cmd = CexportCommon.term_cmd validate fpaste
+let term_paste =
+  Arg.(
+    value & flag
+    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
+  )
+
+let term_cmd = CexportCommon.term_cmd ~term_paste validate fpaste
 let doc = CexportCommon.doc
 let man = CexportCommon.man
 

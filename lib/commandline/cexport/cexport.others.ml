@@ -41,7 +41,7 @@ let fpaste ?mail ?username ~regex ~paste password =
             in
             let () =
               if Option.is_some mail then
-                Printf.printf "For mail: %s\n"
+                Printf.printf "For : %s\n"
                 @@ Option.value ~default:String.empty password.mail
             in
             let () =
@@ -68,7 +68,7 @@ let term_xclip =
            $(b,xclip(1))"
   )
 
-let term_cmd = CexportCommon.term_cmd validate fpaste
+let term_cmd = CexportCommon.term_cmd ~term_paste:term_xclip validate fpaste
 let doc = CexportCommon.doc
 let man = CexportCommon.man
 

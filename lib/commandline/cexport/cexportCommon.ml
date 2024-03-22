@@ -92,19 +92,13 @@ let term_website =
   Arg.(
     value
     & opt (some string) None
-    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Specify the site"
+    & info [ "w"; "website" ] ~docv:"WEBSITE" ~doc:"Match the website"
   )
 
 let term_regex =
   Arg.(
     value & flag
-    & info [ "r"; "regex" ] ~doc:"Find the website by matching its name"
-  )
-
-let term_paste =
-  Arg.(
-    value & flag
-    & info [ "p"; "paste" ] ~doc:"Write the password into the pasteboard"
+    & info [ "r"; "regex" ] ~doc:"Treat each field as a regex string"
   )
 
 let term_output =
@@ -129,7 +123,7 @@ let term_mail =
     & info [ "m"; "mail" ] ~docv:"<MAIL>" ~doc:"Match the mail"
   )
 
-let term_cmd validate fpaste =
+let term_cmd ~term_paste validate fpaste =
   let combine mail username website regex paste output =
     let export =
       new export_t ?mail ?username validate fpaste website regex paste output
