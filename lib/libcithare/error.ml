@@ -15,6 +15,11 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
+module Code = struct
+  let cithare_error_code = 1
+  let cithare_warning_code = 2
+end
+
 type cithare_error =
   | CithareAlreadyConfigured
   | CithareNotConfigured
@@ -36,6 +41,7 @@ type cithare_warning =
   | NoMatchingPassword
   | TooManyMatchingPasswords of string list
   | CannotSaveState of string
+  | PasswordAlreadyExist
 
 exception CithareError of cithare_error
 
@@ -44,10 +50,15 @@ module Repr = struct
     | NoMatchingPassword ->
         "No matching password"
     | TooManyMatchingPasswords website ->
-        Printf.sprintf "Conflicting matching passwords:\n\t- %s"
+        Printf.sprintf
+          "Conflicting matching passwords:\n\
+           \t- %s\n\
+          \  Maybe try to narrow the search with -m and -n"
         @@ String.concat "\n\t- " website
     | CannotSaveState p ->
         Printf.sprintf "Can’t save state at %s" p
+    | PasswordAlreadyExist ->
+        "The given password already match an existing password"
 
   let string_of_options array =
     String.concat ", " @@ List.map (Printf.sprintf "-%s") @@ Array.to_list array
@@ -122,16 +133,22 @@ let missing_expecting_when_present missing when_set =
 
 let decryption_error = CithareError DecryptionError
 
-let emit_warning e =
-  Printf.printf "%s : %s\n"
-    (Cbindings.Termove.sprintf Cbindings.Termove.fg_magenta "warning")
-    (Repr.string_of_warning e)
+let emit_warning ?exit e =
+  let () =
+    Printf.printf "%s : %s\n"
+      (Cbindings.Termove.sprintf Cbindings.Termove.fg_magenta "warning")
+      (Repr.string_of_warning e)
+  in
+  match exit with None -> () | Some n -> Stdlib.exit n
 
-let emit_no_matching_password () = emit_warning NoMatchingPassword
+let emit_no_matching_password ?exit () = emit_warning ?exit NoMatchingPassword
 let emit_cannot_save_state path = emit_warning @@ CannotSaveState path
 
-let emit_too_many_matching_password list =
-  emit_warning @@ TooManyMatchingPasswords list
+let emit_too_many_matching_password ?exit list =
+  emit_warning ?exit @@ TooManyMatchingPasswords list
+
+let emit_already_existing_password ?exit () =
+  emit_warning ?exit PasswordAlreadyExist
 
 let register_cithare_error () =
   Printexc.register_printer (function

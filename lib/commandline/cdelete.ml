@@ -19,7 +19,12 @@ open Cmdliner
 
 let name = "delete"
 
-type t = { all : bool; website : string option }
+type t = {
+  all : bool;
+  website : string option;
+  username : string option;
+  mail : string option;
+}
 
 let term_all =
   Arg.(value & flag & info [ "a"; "all" ] ~doc:"Delete all passwords")
@@ -28,13 +33,32 @@ let term_website =
   Arg.(
     value
     & opt (some string) None
-    & info [ "w"; "website" ] ~docv:"WEBSITE"
+    & info [ "w"; "website" ] ~docv:"<WEBSITE>"
         ~doc:"Delete passwords matching $(docv)"
   )
 
+let term_username =
+  Arg.(
+    value
+    & opt (some string) None
+    & info
+        [ "n"; "name"; "username" ]
+        ~docv:"<NAME>" ~doc:"Delete password by also matching $(docv)"
+  )
+
+let term_mail =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "m"; "mail" ] ~docv:"<MAIL>"
+        ~doc:"Delete password by also matching $(docv)"
+  )
+
 let term_cmd run =
-  let combine all website = run { all; website } in
-  Term.(const combine $ term_all $ term_website)
+  let combine all website username mail =
+    run { all; website; username; mail }
+  in
+  Term.(const combine $ term_all $ term_website $ term_username $ term_mail)
 
 let doc = "Delete passwords to $(mname)"
 let man = [ `S Manpage.s_description; `P doc ]
@@ -44,7 +68,7 @@ let cmd run =
   Cmd.v info (term_cmd run)
 
 let validate t =
-  let { all; website } = t in
+  let { all; website; username = _; mail = _ } = t in
   let () = Libcithare.Manager.check_initialized () in
   match website with
   | None when not all ->
@@ -54,46 +78,79 @@ let validate t =
   | _ ->
       ()
 
+let validate_delete ~default_message ~error_message ~empty_line_message =
+  let module P = Libcithare.Input.Prompt in
+  let delete =
+    Libcithare.Input.validate_input ~default_message ~error_message
+      ~empty_line_message
+  in
+  match delete with
+  | false ->
+      raise @@ Libcithare.Error.delete_password_cancel
+  | true ->
+      ()
+
 let run t =
-  let { all; website } = t in
+  let { all; website; username; mail } = t in
   let () = validate t in
   let master_password = Libcithare.Input.ask_password_encrypted () in
   let manager = Libcithare.Manager.decrypt master_password in
-  let base_len = Libcithare.Manager.length manager in
+  let base_len = Libcithare.Manager.count manager in
   let diff =
     match all with
     | true ->
         let module P = Libcithare.Input.Prompt in
-        let delete =
-          Libcithare.Input.validate_input ~default_message:P.delete_password
-            ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
-        in
         let () =
-          match delete with
-          | false ->
-              raise @@ Libcithare.Error.delete_password_cancel
-          | true ->
-              ()
+          validate_delete ~default_message:P.delete_password
+            ~error_message:P.wrong_choice ~empty_line_message:P.empty_choice
         in
         let manager = Libcithare.Manager.empty in
         let () = Libcithare.Manager.encrypt master_password manager in
         base_len
     | false ->
-        let change, m =
-          website
-          |> Option.map (fun website ->
-                 Libcithare.Manager.filter website manager
-             )
-          |> Option.value ~default:(0, manager)
+        let manager_deleted =
+          Option.value ~default:manager
+          @@ Option.map
+               (fun website ->
+                 Libcithare.Manager.matches ~negate:true ?mail ?username
+                   ~regex:false website manager
+               )
+               website
         in
         (* Can use physical equal since filter returns physical manager if no diff*)
-        let () =
-          match m == manager with
+        let change =
+          match manager_deleted == manager with
           | true ->
-              ()
+              0
           | false ->
-              let () = Libcithare.Manager.encrypt master_password m in
-              ()
+              let changes =
+                Libcithare.Manager.(count manager - count manager_deleted)
+              in
+              let changes =
+                match changes with
+                | changes when changes <= 1 ->
+                    changes
+                | changes ->
+                    let module P = Libcithare.Input.Prompt in
+                    let deleted =
+                      Libcithare.Manager.elements
+                      @@ Libcithare.Manager.diff manager manager_deleted
+                    in
+                    let message_fmt =
+                      List.map Libcithare.Manager.error_format deleted
+                    in
+                    let () =
+                      validate_delete
+                        ~default_message:(P.delete_password_list message_fmt)
+                        ~error_message:P.wrong_choice
+                        ~empty_line_message:P.empty_choice
+                    in
+                    changes
+              in
+              let () =
+                Libcithare.Manager.encrypt master_password manager_deleted
+              in
+              changes
         in
         change
   in

@@ -15,22 +15,12 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-let spaces n = String.init n (fun _ -> ' ')
-
-let line ~first ~last length s =
-  String.init length (function
-    | 0 ->
-        first
-    | n when n - 1 = length ->
-        last
-    | _ ->
-        s
+let rec compares compare lhs rhs =
+  match compare with
+  | [] ->
+      Stdlib.compare lhs rhs
+  | cmp :: [] ->
+      cmp lhs rhs
+  | cmp :: q -> (
+      match cmp lhs rhs with 0 -> compares q lhs rhs | n -> n
     )
-
-let truncate n s =
-  let length = String.length s in
-  if length < n then
-    s
-  else
-    let subs = String.sub s 0 n in
-    Printf.sprintf "%s..." subs

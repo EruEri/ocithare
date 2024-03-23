@@ -21,7 +21,7 @@ let name = CexportCommon.name
 
 type t = CexportCommon.export_t
 
-let fpaste ~regex ~paste password =
+let fpaste ?mail ?username ~regex ~paste password =
   match paste with
   | false ->
       let () = print_endline password.Libcithare.Password.password in
@@ -38,6 +38,16 @@ let fpaste ~regex ~paste password =
             let () =
               if regex then
                 Printf.printf "For : %s\n" password.website
+            in
+            let () =
+              if Option.is_some mail then
+                Printf.printf "For : %s\n"
+                @@ Option.value ~default:String.empty password.mail
+            in
+            let () =
+              if Option.is_some username then
+                Printf.printf "For : %s\n"
+                @@ Option.value ~default:String.empty password.username
             in
             Printf.printf "Password successfully written in pasteboard\n"
         | _ ->
@@ -58,26 +68,12 @@ let term_xclip =
            $(b,xclip(1))"
   )
 
-let term_website = CexportCommon.term_website
-let term_regex = CexportCommon.term_regex
-let term_output = CexportCommon.term_output
-let term_display_time = CexportCommon.term_display_time
-let term_show_password = CexportCommon.term_show_password
-
-let term_cmd () =
-  let combine website regex paste output =
-    let export =
-      new CexportCommon.export_t validate fpaste website regex paste output
-    in
-    export#run ()
-  in
-  Term.(const combine $ term_website $ term_regex $ term_xclip $ term_output)
-
+let term_cmd = CexportCommon.term_cmd ~term_paste:term_xclip validate fpaste
 let doc = CexportCommon.doc
-let man = [ `S Manpage.s_description; `P "Export passwords" ]
+let man = CexportCommon.man
 
 let cmd () =
   let info = Cmd.info ~doc ~man name in
-  Cmd.v info (term_cmd ())
+  Cmd.v info term_cmd
 
 let command = cmd ()
