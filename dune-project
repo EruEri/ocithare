@@ -20,7 +20,7 @@
 (package
  (name ocithare)
  (synopsis "A commandline password manager")
- (depends dune xdg str-base dune-build-info (ocaml (>= "4.13.0"))  (cryptokit (>= "1.17")) (ppx_deriving_yojson (>= "3.5.3")) (yojson (>= "2.0.0")) (cmdliner (>= "1.1.0")) )
+ (depends dune xdg dune-build-info (ocaml (>= "4.13.0"))  (cryptokit (>= "1.17")) (ppx_deriving_yojson (>= "3.5.3")) (yojson (>= "2.0.0")) (cmdliner (>= "1.1.0")) )
  (tags
   (password-manager cli)))
 
