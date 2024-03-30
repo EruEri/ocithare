@@ -1,5 +1,5 @@
 ## [0.11.0-1]
-- [Fix opam build dependancies]()
+- [Fix opam build dependancies](https://github.com/EruEri/ocithare/pull/8)
 
 ## [0.11.0]
 - [cithare-{delete,export}: Add name and mail options to narrow down the matching](https://github.com/EruEri/ocithare/pull/6)
