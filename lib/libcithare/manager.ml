@@ -209,11 +209,19 @@ let insert ?mail ?username ~replace (password : Password.t) manager =
         new_password.Password.website = old_password.Password.website
         && are_field_matched
       in
+      (* Take one string if one if None or take the newer*)
+      let merge old recent =
+        match (old, recent) with
+        | None, None ->
+            None
+        | (Some _ as p), None | (None | Some _), (Some _ as p) ->
+            p
+      in
       let manager_mapped =
         map
           (fun p ->
             if is_password_replacement password p then
-              password
+              Password.merge merge merge p password
             else
               p
           )
@@ -264,7 +272,12 @@ let password_match ~regex ?mail ?username website (password : Password.t) =
   - If all the elements are matched, manager is unchanged (the result of the function is then physically equal to [manager])
 *)
 let matches ?(negate = false) ?mail ?username ~regex website manager =
-  let transformer = if negate then Fun.negate else Fun.id in
+  let transformer =
+    if negate then
+      Fun.negate
+    else
+      Fun.id
+  in
   let f = transformer @@ password_match ~regex ?mail ?username website in
   let passwords_set = Passwords.filter f manager.passwords_set in
   if manager.passwords_set == passwords_set then
