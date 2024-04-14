@@ -1,4 +1,4 @@
-## [Unrealeased]
+## [0.12.0]
 - [cithare-show: Can read from a .citharerc file from positional arg](https://github.com/EruEri/ocithare/pull/10)
 - [cithare-add: Fix replace option by merging information with the old password record](https://github.com/EruEri/ocithare/pull/9)
 
