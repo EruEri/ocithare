@@ -1,3 +1,6 @@
+## [Unrealeased]
+- [cithare-add: Fix replace option by merging information with the old password record](https://github.com/EruEri/ocithare/pull/9)
+
 ## [0.11.0-1]
 - [Fix opam build dependancies](https://github.com/EruEri/ocithare/pull/8)
 
