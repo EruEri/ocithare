@@ -127,7 +127,11 @@ let run t =
   in
   let () = Libcithare.Manager.encrypt ~encrypt_key:true pass manager in
   let extension =
-    match Option.is_some import with true -> "with passwords" | false -> String.empty
+    match Option.is_some import with
+    | true ->
+        "with passwords"
+    | false ->
+        String.empty
   in
   let () =
     Printf.printf "%s initiliazed %s\n%!" Libcithare.Config.cithare_name

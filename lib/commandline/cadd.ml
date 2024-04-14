@@ -79,37 +79,7 @@ let cmd run =
   let info = Cmd.info ~doc ~man name in
   Cmd.v info @@ term_cmd run
 
-let getpassword gen_password =
-  let CgenPassword.{ number; uppercase; lowercase; symbole; exclude; count } =
-    gen_password
-  in
-  match
-    (not (CgenPassword.CharSet.is_empty exclude))
-    || Option.is_some count
-    || Libcithare.Password.Generate.has_options ~number ~uppercase ~lowercase
-         ~symbole
-  with
-  | true ->
-      let count = Option.value ~default:CgenPassword.default_count count in
-      CgenPassword.is_password_satifying ~exclude ~number ~uppercase ~lowercase
-        ~symbole count
-  | false ->
-      let first =
-        Libcithare.Input.ask_password
-          ~prompt:Libcithare.Input.Prompt.new_password ()
-      in
-      let confirm =
-        Libcithare.Input.ask_password
-          ~prompt:Libcithare.Input.Prompt.confirm_password ()
-      in
-      let () =
-        match first = confirm with
-        | true ->
-            ()
-        | false ->
-            raise @@ Libcithare.Error.unmatched_password
-      in
-      Some first
+let getpassword = Common.getpassword
 
 let validate t =
   let () = Libcithare.Manager.check_initialized () in
@@ -119,13 +89,6 @@ let validate t =
     | None, None when not replace ->
         raise @@ Libcithare.Error.option_simult_none [| "-username"; "-mail" |]
     | _ ->
-        ()
-  in
-  let () =
-    match Util.FileSys.file_exists Libcithare.Config.cithare_password_file with
-    | false ->
-        raise @@ Libcithare.Error.cithare_not_configured
-    | true ->
         ()
   in
   ()

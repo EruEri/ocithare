@@ -126,5 +126,13 @@ let username { username; _ } = username
 let password { password; _ } = password
 let mail { mail; _ } = mail
 
+let merge fmail fusername old recent =
+  if old.website <> recent.website || old = recent then
+    old
+  else
+    let mail = fmail old.mail recent.mail in
+    let username = fusername old.username recent.username in
+    { recent with mail; username }
+
 let hide password =
   { password with password = String.map (fun _ -> '*') password.password }
