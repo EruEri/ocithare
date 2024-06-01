@@ -1,3 +1,12 @@
+## [0.13.0]
+- [misc: cithare exit code] : Change cithare exit code
+- [cithare-generate-password]: raise default password length: 8 -> 16
+- [cithare-add] : remove restriction: at least username or mail must be set.
+- [cithare-export: field option](https://codeberg.org/EruEri/ocithare/pulls/15)
+- [cithare-update: new subcommand](https://codeberg.org/EruEri/ocithare/pulls/14)
+- [misc: install instructions](https://codeberg.org/EruEri/ocithare/pulls/13)
+- [env variable: Add `CITHARE_HOME` env variable](https://codeberg.org/EruEri/ocithare/pulls/12)
+
 ## [0.12.0]
 - [cithare-show: Can read from a .citharerc file from positional arg](https://github.com/EruEri/ocithare/pull/10)
 - [cithare-add: Fix replace option by merging information with the old password record](https://github.com/EruEri/ocithare/pull/9)
