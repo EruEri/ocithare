@@ -5,16 +5,25 @@ The code source is now hosted on [Codeberg](https://codeberg.org/EruEri/ocithare
 - ocithare is the rewrite of [cithare](https://git.nayuri.fr/EruEri/cithare), which is written in swift, in OCaml
 - ocithare is a command line password manager
 
-
 ## How to build
-- First you will need to install those opam packages.
+First you will need to install those opam packages.
 
 ```
 $ opam install dune xdg cmdliner dune-configurator cryptokit yojson ppx_deriving_yojson
 ```
-- And
-```
-$ git clone https://github.com/EruEri/ocithare
+
+
+By default the prefix install is `/usr/local`. So cithare binary is installed in `/usr/local/bin` and the man pages in `/usr/local/share/man`. 
+But the `make install` rule reacts to 3 variables:
+- `PREFIX`: 
+  - default: `/usr/local`
+- `BINDIR`: 
+    - default: `$(PREFIX)/bin`
+- `MANDIR`: 
+    - default: `$(PREFIX)/share/man`
+
+```sh
+$ git clone https://codeberg.org/EruEri/ocithare
 $ cd ocithare
 $ make
 $ make install
