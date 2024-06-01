@@ -1,6 +1,6 @@
 # ocithare
 
-The code source is now hosted on [Codeberg](https://codeberg.org/EruEri/ocithare)
+The source code is now hosted on [Codeberg](https://codeberg.org/EruEri/ocithare)
 
 - ocithare is the rewrite of [cithare](https://git.nayuri.fr/EruEri/cithare), which is written in swift, in OCaml
 - ocithare is a command line password manager
