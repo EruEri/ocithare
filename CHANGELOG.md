@@ -1,30 +1,40 @@
+## [0.14.0]
+- [new subcommand: cithare-info]
+- [cithare-export]\: Fix write to xclip if the password contains an \'
+- [cithare-show]\: 
+    - Hide all fields by default
+    - Remove option (display-time)
+    - add options to display each field
+    - add a first line
+- [cithare-generate-password]\: Ensure if possible that at least one ocurrence of the selected charset exist.
+
 ## [0.13.0]
-- [misc: cithare exit code] : Change cithare exit code
-- [cithare-generate-password]: raise default password length: 8 -> 16
-- [cithare-add] : remove restriction: at least username or mail must be set.
+- [misc: cithare exit code]\: Change cithare exit code
+- [cithare-generate-password]\: raise default password length: 8 -> 16
+- [cithare-add]\: remove restriction: at least username or mail must be set.
 - [cithare-export: field option](https://codeberg.org/EruEri/ocithare/pulls/15)
 - [cithare-update: new subcommand](https://codeberg.org/EruEri/ocithare/pulls/14)
 - [misc: install instructions](https://codeberg.org/EruEri/ocithare/pulls/13)
 - [env variable: Add `CITHARE_HOME` env variable](https://codeberg.org/EruEri/ocithare/pulls/12)
 
 ## [0.12.0]
-- [cithare-show: Can read from a .citharerc file from positional arg](https://github.com/EruEri/ocithare/pull/10)
-- [cithare-add: Fix replace option by merging information with the old password record](https://github.com/EruEri/ocithare/pull/9)
+- [cithare-show: Can read from a .citharerc file from positional arg](https://codeberg.org/EruEri/ocithare/pull/10)
+- [cithare-add: Fix replace option by merging information with the old password record](https://codeberg.org/EruEri/ocithare/pull/9)
 
 ## [0.11.0-1]
-- [Fix opam build dependancies](https://github.com/EruEri/ocithare/pull/8)
+- [Fix opam build dependancies](https://codeberg.org/EruEri/ocithare/pull/8)
 
 ## [0.11.0]
-- [cithare-{delete,export}: Add name and mail options to narrow down the matching](https://github.com/EruEri/ocithare/pull/6)
+- [cithare-{delete,export}: Add name and mail options to narrow down the matching](https://codeberg.org/EruEri/ocithare/pull/6)
 
 ## [0.10.1]
-- [cithare-add: Add length as a trigger for automic password generation](https://github.com/EruEri/ocithare/pull/4)
+- [cithare-add: Add length as a trigger for automic password generation](https://codeberg.org/EruEri/ocithare/pull/4)
 
 ## [0.10.0]
-- [cithare-add: Geneate password with the option of cithare-generate-password](https://github.com/EruEri/ocithare/pull/2)
+- [cithare-add: Geneate password with the option of cithare-generate-password](https://codeberg.org/EruEri/ocithare/pull/2)
 
 ## [0.9.1]
-- [Clipboard paste other than macOS](https://github.com/EruEri/ocithare/pull/1) 
+- [Clipboard paste other than macOS](https://codeberg.org/EruEri/ocithare/pull/1) 
 
 ## [0.9.0]
 - Initial Release
@@ -39,4 +49,4 @@
 - Password file is named ```.citharerc``` instead of ````.citharecf```
 
 ## [0.8.0]
-- [cithare 0.8.0](https://github.com/EruEri/cithare)
+- [cithare 0.8.0](https://git.nayuri.fr/EruEri/cithare)
