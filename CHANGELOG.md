@@ -1,3 +1,10 @@
+# CHANGELOG
+
+## [0.14.1]
+- [cithare-export]\: 
+    - change non-macos paste option : -x -> -p
+    - invoke wl-copy if XDG_SESSION_TYPE is wayland, xclip otherwise
+
 ## [0.14.0]
 - [new subcommand: cithare-info]
 - [cithare-export]\: Fix write to xclip if the password contains an \'

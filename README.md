@@ -5,6 +5,7 @@ The source code is now hosted on [Codeberg](https://codeberg.org/EruEri/ocithare
 - ocithare is the rewrite of [cithare](https://git.nayuri.fr/EruEri/cithare), which is written in swift, in OCaml
 - ocithare is a command line password manager
 
+
 ## How to build
 First you will need to install those opam packages.
 
@@ -126,8 +127,6 @@ OPTIONS
            Specify the site
 ```
 
-- Currently the **paste** is only available on macOS
-
 ## Show
 
 To see all your registered password, ```show``` subcommand
@@ -135,17 +134,37 @@ To see all your registered password, ```show``` subcommand
 ```
 $ cithare show --help
 NAME
-       cithare-show - Display passwords
+       cithare-show - Display entries
 
 SYNOPSIS
-       cithare show [--display-time=DURATION] [--show-password] [OPTION]…
+       cithare show [OPTION]… [<CITHARE-CIPHER>]
+
+DESCRIPTION
+       cithare-show(1) shows entry records in your terminal in a table format
+       and by default hides all the fields. Use -w, -u, -m and --password to
+       respectively display in plain text the website, username, mail and
+       password
+
+       cithare-show(1) can take a file as parameter. If provided,
+       cithare-show(1) will read the content of this file instead of the
+       usual .citharerc
+
+ARGUMENTS
+       <CITHARE-CIPHER>
+           Use <CITHARE-CIPHER> instead
 
 OPTIONS
-       -d DURATION, --display-time=DURATION
-           Show password to stdout for DURATION
+       -m, --mail
+           Show plain mail
 
-       --show-password
+       --password
            Show plain passwords
+
+       -u, -n, --username
+           Show plain username
+
+       -w, --website
+           Show plain website
 ```
 
 # Warning
