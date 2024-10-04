@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [0.15.0]
+- [cithare-add]\:
+    - Add yes/no flags to answer yes/no to cithare-add questions.
+    - Change the replace behaviour.
+        - -r -> -R (replace or add)
+        - -r (Replace only if an entry is matched)
+    - misc : change some prompts formating.
+- [cithare-generate-password]\:
+    - Exclude space by default.
+    - Add --space option to re-enable it.
+
 ## [0.14.1]
 - [cithare-export]\: 
     - change non-macos paste option : -x -> -p
