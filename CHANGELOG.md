@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [0.15.1]
+- [cithare-add]:
+    - Add -p option (like cithare-export) to copy the newly created password to the pasteboard.
+    - Add **cithare-add** examples.
+- [cithare-add]:
+    - Rely on cmdliner to handle mutual exclusion of -r and -R (the logical is unchanged though)
+
 ## [0.15.0]
 - [cithare-add]\:
     - Add yes/no flags to answer yes/no to cithare-add questions.
