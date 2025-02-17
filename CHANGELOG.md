@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [0.16.0]:
+- [new subcommands]\:
+    - cithare-diff
+    - cithare-merge
+- renaming:
+    - rename: cithare-delete -> cithare-remove
+
 ## [0.15.1]
 - [cithare-add]:
     - Add -p option (like cithare-export) to copy the newly created password to the pasteboard.
