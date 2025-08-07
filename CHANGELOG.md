@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [0.17.0]:
+- [password field: add comment field to a password entry]\:
+    - Add a `comment` field to a password entry. (No Breaking change)
+    - cithare-\*: add options to handle comment.
+        - CEVEATS: comments can not be used to filter a match.
+- [regex handling]\:
+    - pkg: new dependancy: Re
+        - use Re instead of builtin Str
+    - string without -r flag matches substring instead of exact
+    - string wit -r flag matches using posix regex.
+
 ## [0.16.0]:
 - [new subcommands]\:
     - cithare-diff

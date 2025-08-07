@@ -10,7 +10,7 @@ The source code is now hosted on [Codeberg](https://codeberg.org/EruEri/ocithare
 First you will need to install those opam packages.
 
 ```
-$ opam install dune xdg cmdliner dune-configurator cryptokit yojson ppx_deriving_yojson
+$ opam install dune digestif mirage-crypto ppx_deriving_yojson yojson cmdliner re
 ```
 
 
@@ -40,13 +40,33 @@ NAME
        cithare-init - Initialize cithare
 
 SYNOPSIS
-       cithare init [--force] [--import=<FILE>] [OPTION]…
+       cithare init [--force] [--import=<file>] [OPTION]…
+
+DESCRIPTION
+       Initialize cithare by creating $XDG_DATA_HOME/cithare/.citharerc file
+
+       If cithare has already been initialized, cithare init will raise an
+       exception unless the --force option is given which will delete the
+       existing cithare installation
+
+       To import existing passwords, use --import <FILE>
+       Imported passwords must be formatted as a json according to the
+       following structure :
+
+       passwords: array of passwords
+           password : object
+             website: string (required)
+             username : string (optional)
+             mail : string (optional)
+             password : (required)
+
+       Passwords exported throught cithare-export(1) can be imported
 
 OPTIONS
        -f, --force
            Force the initialisation
 
-       -i <FILE>, --import=<FILE>
+       -i <file>, --import=<file>
            Initialize with a formatted password file
 ```
 
@@ -65,39 +85,78 @@ SYNOPSIS
 DESCRIPTION
        Add passwords to cithare
 
-       At least --website or --username must be present
-
        If one of the following option is provided -c, -d, -e, -l, -s, -u,
-       cithare-add(1) will automatically generate a password and the options
-       to generate the password are the same than cithare-generate-password(1)
+       --space, cithare-add(1) will automatically generate a password and the
+       options to generate the password are the same that
+       cithare-generate-password(1).
+
+       cithare-add(1) is also used to update the password field of entries
+       with the options -r and -R. Both can not be used at the same time. The
+       option -R will try to replace a password for an existing entry but if
+       no entry is matched, a new entry will be added whereas with -r, cithare
+       will exit with a non success code if no entry is matched.
+
+       By default, when a password is automatically generated with the
+       required options, cithare-add(1) prints the generated password and
+       waits the answer for a yes/no question. If --yes is given,
+       cithare-add(1) does not ask the question neither prints the generated
+       password.
 
 OPTIONS
-       -c <LENGTH>, --count=<LENGTH> (absent=8)
+       -c <length>, --count=<length> (absent=16)
            Set the length of the generated password
 
        -d  Include digit set [0-9]
 
-       -e <Char>, --exclude=<Char>
-           Exclude <Char> from character set
+       -e <char>, --exclude=<char>
+           Exclude <char> from character set
 
        -l  Include lowercase letter set [a-z]
 
-       -m MAIL, --mail=MAIL
-           Chosen MAIL
+       -m <mail>, --mail=<mail>
+           Chosen <mail>
 
-       -n NAME, --username=NAME, --name=NAME
-           Chosen NAME
+       -n <name>, --username=<name>, --name=<name>
+           Chosen <name>
+
+       --no
+           Answer no to cithare yes/no questions without prompting
+
+       -p, --paste
+           Try to write the newly created password into the pastebord. If
+           XDG_SESSION_TYPE is set to wayland, invoke wl-copy(1) otherwise
+           invoke xclip(1) by targetting the clipboard X selection.
+
+       -R, --replace-or-add
+           Replace the password of an existing entry or create it
 
        -r, --replace
-           Replace a password
+           Replace the password of an existing entry
 
        -s  Include all printable character that aren't a number or a letter
 
+       --space
+           Include the whitespace character
+
        -u  Include uppercased letter set [A-Z]
 
-       -w WEBSITE, --website=WEBSITE (required)
-           Chosen WEBSITE
+       -w <website>, --website=<website> (required)
+           Chosen <website>
+
+       -y, --yes
+           Answer yes to cithare yes/no questions without prompting
 ```
+
+The clipboard handling is plateform dependant.
+- On macOS:
+    - cithare is compiled against `AppKit` framework and use directly the `NSPasteboard` api.
+- On other \*nix (FreeBSD, Linux, ...):
+    - on wayland:
+        - Invoke `wl-copy`
+    - otherwier:
+        - Invoke `xclip`
+- On windows:
+    - No tested
 
 ## Export
 
@@ -111,20 +170,43 @@ SYNOPSIS
        cithare export [OPTION]…
 
 DESCRIPTION
-       Export passwords
+       cithare export retrieves passwords from cithare, either a field from
+       one entry or export all the passwords stored in a json formatted file
+
+       By default, cithare-export(1) exports the password field from an entry
+       but it's possible to specify an other field with the -f option.
+       To be exportable, the field value must not be none.
+
+       -m and -n options further narrows down the matching.
+       Narrow down the matching is mandatory if you try to retrieve a password
+       from an entry where the website appears more than once.
+
+       Regex option (ie. -r) if provided, treats individually website, name
+       and mail as a regex string.
 
 OPTIONS
-       -o OUTFILE
-           Export passwords as json into OUTFILE
+       -f [<field>], --field[=<field>] (default=password) (required)
+           Field to export. one of 'website', 'password', 'mail' or 'username'
+
+       -m <mail>, --mail=<mail>
+           Match the mail
+
+       -n <name>, --username=<name>, --name=<name>
+           Match the username
+
+       -o <outfile>
+           Export passwords as json into <outfile>
 
        -p, --paste
-           Write the password into the pasteboard
+           Try to write the password into the pastebord. If XDG_SESSION_TYPE
+           is set to wayland, invoke wl-copy(1) otherwise invoke xclip(1) by
+           targetting the clipboard X selection.
 
        -r, --regex
-           Find the website by matching its name
+           Treat each field as a regex string
 
-       -w WEBSITE, --website=WEBSITE
-           Specify the site
+       -w <website>, --website=<website>
+           Match the website
 ```
 
 ## Show
@@ -134,39 +216,53 @@ To see all your registered password, ```show``` subcommand
 ```
 $ cithare show --help
 NAME
-       cithare-show - Display entries
+       cithare-export - Export passwords
 
 SYNOPSIS
-       cithare show [OPTION]… [<CITHARE-CIPHER>]
+       cithare export [OPTION]…
 
 DESCRIPTION
-       cithare-show(1) shows entry records in your terminal in a table format
-       and by default hides all the fields. Use -w, -u, -m and --password to
-       respectively display in plain text the website, username, mail and
-       password
+       cithare export retrieves passwords from cithare, either a field from
+       one entry or export all the passwords stored in a json formatted file
 
-       cithare-show(1) can take a file as parameter. If provided,
-       cithare-show(1) will read the content of this file instead of the
-       usual .citharerc
+       By default, cithare-export(1) exports the password field from an entry
+       but it's possible to specify an other field with the -f option.
+       To be exportable, the field value must not be none.
 
-ARGUMENTS
-       <CITHARE-CIPHER>
-           Use <CITHARE-CIPHER> instead
+       -m and -n options further narrows down the matching.
+       Narrow down the matching is mandatory if you try to retrieve a password
+       from an entry where the website appears more than once.
+
+       Regex option (ie. -r) if provided, treats individually website, name
+       and mail as a regex string.
 
 OPTIONS
-       -m, --mail
-           Show plain mail
+       -f [<field>], --field[=<field>] (default=password) (required)
+           Field to export. one of 'website', 'password', 'mail', 'username'
+           or 'comment'
 
-       --password
-           Show plain passwords
+       -m <mail>, --mail=<mail>
+           Match the mail
 
-       -u, -n, --username
-           Show plain username
+       -n <name>, --username=<name>, --name=<name>
+           Match the username
 
-       -w, --website
-           Show plain website
+       -o <outfile>
+           Export passwords as json into <outfile>
+
+       -p, --paste
+           Try to write the password into the pastebord. If $XDG_SESSION_TYPE
+           is set to wayland, invoke wl-copy(1) otherwise invoke xclip(1) by
+           targetting the clipboard X selection.
+
+       -r, --regex
+           Treat each field as a regex string
+
+       -w <website>, --website=<website>
+           Match the website
 ```
 
 # Warning
 
-Even if your master password is never stored and all your password are encrypted, I don't know if the encryption method is neither good nor safe so use it at your own risk.
+Even if your master password is never stored and all your password are encrypted, 
+I don't know if the encryption method is neither good nor safe so use it at your own risk.
