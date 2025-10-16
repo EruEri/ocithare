@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [0.18.0]
+- [cithare-input: add option to read the master from stdin]\:
+    - Add -0 option to read the master password from stdin 
+        (allows piping the master password).
+- [cithare-generate-password: Add option to exclude all character from a string]
+    - Add -E option to exclude characters in string from generated password 
+        (avoid repeating -e option).
+
 ## [0.17.0]:
 - [password field: add comment field to a password entry]\:
     - Add a `comment` field to a password entry. (No Breaking change)
