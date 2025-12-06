@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## [0.18.1]
+- cithare-update: fix `comment` field update.
+
 ## [0.18.0]
 - [cithare-input: add option to read the master from stdin]\:
     - Add -0 option to read the master password from stdin 
